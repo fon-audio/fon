@@ -1358,6 +1358,7 @@ const CONFIG = {
   channelName: 'fon-tabs',   /* канал, через который вкладки договариваются */
   pingKey: 'mfp.ping',       /* откат на событие storage */
   stallNoticeMs: 10000,      /* сколько ждём подвисший поток, прежде чем сказать */
+  connectTimeoutMs: 12000,   /* таймут на подключение к потоку, прежде чем пробовать следующий адрес */
   historyWindow: 20,         /* сколько последних сессий смотрит движок */
   recentLimit: 10            /* сколько сессий показываем в «Последнем» */
 };
@@ -3175,7 +3176,7 @@ function hasWords(source) {
    Вся пользовательская текстовка. Правка формулировок — только здесь.
    ============================================================ */
 const COPY = {
-  'app.title': 'Фон',
+  'app.title': 'Фон — v1.1',
   'app.subtitle': 'Звуковая среда под то, что вы делаете',
   'nav.today': 'Сегодня',
   'nav.music': 'Музыка',
@@ -3818,6 +3819,7 @@ const player = {
   urls: [],              /* основной адрес и запасные */
   urlIndex: 0,
   stallTimer: null,
+  connectTimer: null,    /* таймер подключения к потоку */
   listeners: { playing: [], error: [], stalled: [] },
 
   on(event, handler) {
@@ -3843,6 +3845,7 @@ const player = {
 
     audio.addEventListener('playing', () => {
       this.clearStallTimer();
+      this.clearConnectTimer();
       this.emit('playing', this.source);
     });
     audio.addEventListener('waiting', () => this.startStallTimer());
@@ -3865,17 +3868,31 @@ const player = {
     if (this.stallTimer) { clearTimeout(this.stallTimer); this.stallTimer = null; }
   },
 
+  startConnectTimer() {
+    this.clearConnectTimer();
+    this.connectTimer = setTimeout(() => {
+      this.connectTimer = null;
+      if (this.source) this.tryNextUrl();
+    }, CONFIG.connectTimeoutMs || 12000);
+  },
+
+  clearConnectTimer() {
+    if (this.connectTimer) { clearTimeout(this.connectTimer); this.connectTimer = null; }
+  },
+
   /* Молча пробуем запасные адреса; кончились — говорим честно. */
   tryNextUrl() {
     this.urlIndex++;
     if (this.urlIndex >= this.urls.length) {
       this.clearStallTimer();
+      this.clearConnectTimer();
       this.emit('error', this.source);
       return;
     }
     const audio = this.ensureAudio();
     audio.src = this.urls[this.urlIndex];
     audio.load();
+    this.startConnectTimer();
     const attempt = audio.play();
     if (attempt && attempt.catch) attempt.catch(() => this.tryNextUrl());
   },
@@ -3899,6 +3916,7 @@ const player = {
     audio.volume = state.data.settings.volume;
     audio.src = this.urls[0];
     audio.load();
+    this.startConnectTimer();
     const attempt = audio.play();
     if (attempt && attempt.catch) attempt.catch(() => this.tryNextUrl());
     return 'stream';
@@ -3907,6 +3925,7 @@ const player = {
   pause() {
     if (this.audio && !this.audio.paused) this.audio.pause();
     this.clearStallTimer();
+    this.clearConnectTimer();
   },
 
   resume() {
@@ -3919,6 +3938,7 @@ const player = {
 
   stop() {
     this.clearStallTimer();
+    this.clearConnectTimer();
     this.source = null;
     this.urls = [];
     this.urlIndex = 0;
