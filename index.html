@@ -3176,7 +3176,7 @@ function hasWords(source) {
    Вся пользовательская текстовка. Правка формулировок — только здесь.
    ============================================================ */
 const COPY = {
-  'app.title': 'Фон — v1.1',
+  'app.title': 'Фон',
   'app.subtitle': 'Звуковая среда под то, что вы делаете',
   'nav.today': 'Сегодня',
   'nav.music': 'Музыка',
@@ -3412,6 +3412,7 @@ const COPY = {
   'session.status.playing': 'Играет',
   'session.status.paused': 'На паузе',
   'session.status.pausedOwn': 'Пауза. Таймер остановлен',
+  'session.status.pausedSilence': 'Пауза. Таймер остановлен',
 
   'settings.theme': 'Тема',
   'settings.theme.system': 'Системная',
@@ -3932,6 +3933,7 @@ const player = {
     if (!this.audio || !this.source || this.source.play.kind !== 'stream') return;
     /* У живого потока нет позиции: возвращаемся к эфиру, а не к паузе. */
     this.audio.load();
+    this.startConnectTimer();
     const attempt = this.audio.play();
     if (attempt && attempt.catch) attempt.catch(() => this.tryNextUrl());
   },
@@ -5348,16 +5350,16 @@ function computeSessionStatus(source, session) {
   const kind = source.play.kind;
 
   if (session.pausedAt) {
+    if (source.id === 'silence') return COPY['session.status.pausedSilence'];
     if (kind === 'none') return COPY['session.status.pausedOwn'];
     return COPY['session.status.paused'];
   }
 
+  if (source.id === 'silence') return COPY['session.status.silence'];
   if (kind === 'none') return COPY['session.status.own'];
-  if (kind === 'silent') return COPY['session.status.silence'];
   if (kind === 'external') return COPY['session.status.external'];
 
-  /* Для потоков: по умолчанию подключаемся, потом плейер обновит через updateSessionStatus. */
-  if (kind === 'stream') return COPY['session.status.connecting'];
+  if (kind === 'stream') return session.isPlaying ? COPY['session.status.playing'] : COPY['session.status.connecting'];
 
   return '';
 }
