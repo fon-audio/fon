@@ -503,6 +503,39 @@ a { color: var(--accent-ink); }
 
 .entry { margin-bottom: var(--sp-6); }
 .entry__title { font-size: 15px; font-weight: 500; color: var(--text-2); margin-bottom: var(--sp-3); }
+.entry.collapsed {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--sp-6);
+}
+.collapsed-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-btn);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.collapsed-entry:hover { background: var(--bg-hover); }
+.collapsed-entry:active { background: var(--bg-pressed); }
+.collapsed-entry__text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.collapsed-entry__text strong { color: var(--text-primary); }
+.collapsed-entry__text span { color: var(--text-secondary); }
 .chips-row { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 .chip--icon { padding: 0 12px; }
 .dialog__body { margin-top: var(--sp-4); max-height: 50vh; overflow-y: auto; }
@@ -3412,6 +3445,8 @@ const COPY = {
   'today.why': 'Почему именно это?',
   'today.tune': 'Настроить точнее',
   'today.start': 'Начать сессию',
+  'today.change': 'выбрать другое',
+  'today.changeMind': 'Выбрать другое',
 
   'tune.state': 'Как сейчас?',
   'tune.state.ok': 'Нормально',
@@ -6426,6 +6461,72 @@ function screenShell(titleText, options) {
 }
 
 /* Вход 1 — по состоянию. Шесть карточек, первая шире остальных. */
+function scrollCardToView() {
+  const host = document.getElementById('recHost');
+  if (!host) return;
+  const card = host.querySelector('.rec');
+  if (!card) return;
+
+  const col = document.getElementById('col');
+  if (!col) return;
+
+  const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const top = card.getBoundingClientRect().top;
+  const colTop = col.getBoundingClientRect().top;
+  const scrollTarget = window.scrollY + top - colTop;
+
+  if (prefersReduced) {
+    window.scrollTo(0, scrollTarget);
+  } else {
+    window.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+  }
+
+  const heading = card.querySelector('h2, h3, h4, h5, h6, [data-heading]');
+  if (heading) {
+    heading.setAttribute('tabindex', '-1');
+    setTimeout(() => {
+      heading.focus();
+      heading.removeAttribute('tabindex');
+    }, prefersReduced ? 0 : 400);
+  }
+}
+
+function expandEntry() {
+  state.today.entry = null;
+  state.today.stateId = null;
+  state.today.taskId = null;
+  state.today.genreId = null;
+  renderScreen({ moveFocus: false });
+}
+
+function renderCollapsedEntry() {
+  let label = '';
+  if (state.today.entry === 'state') {
+    const s = STATES.find(x => x.id === state.today.stateId);
+    label = s ? s.title : '';
+  } else if (state.today.entry === 'task') {
+    const t = enabledTasks().find(x => x.id === state.today.taskId);
+    label = t ? t.title : '';
+  } else if (state.today.entry === 'genre') {
+    const g = GENRE_GROUPS.find(x => x.id === state.today.genreId);
+    label = g ? g.title : '';
+  }
+  if (!label) return null;
+
+  const btn = el('button', {
+    class: 'collapsed-entry',
+    type: 'button',
+    attrs: { 'data-action': 'expand-entry', 'aria-label': COPY['today.changeMind'] || 'Выбрать другое' }
+  }, [
+    icon('i-chevron-left'),
+    el('span', { class: 'collapsed-entry__text' }, [
+      el('strong', { text: label }),
+      el('span', { text: ' · ' + COPY['today.change'] })
+    ])
+  ]);
+  return el('div', { class: 'entry collapsed' }, [btn]);
+}
+
 function renderStateEntry() {
   const grid = el('div', { class: 'states' });
   STATES.forEach(function (item, index) {
@@ -6535,9 +6636,14 @@ function renderToday() {
     if (restart) section.appendChild(restart);
   }
 
-  section.appendChild(renderStateEntry());
-  section.appendChild(renderTaskEntry());
-  section.appendChild(renderGenreEntry());
+  if (state.today.entry) {
+    const collapsed = renderCollapsedEntry();
+    if (collapsed) section.appendChild(collapsed);
+  } else {
+    section.appendChild(renderStateEntry());
+    section.appendChild(renderTaskEntry());
+    section.appendChild(renderGenreEntry());
+  }
 
   /* Место под карточку рекомендации: входы остаются на месте,
      карточка появляется под ними и обновляется внутри этого узла. */
@@ -6680,6 +6786,7 @@ function selectEntry(entry, value) {
     button.setAttribute('aria-pressed', active ? 'true' : 'false');
   }
   renderRecommendation();
+  if (changed) scrollCardToView();
 }
 
 /* Панель выбора профилей. */
@@ -8690,6 +8797,7 @@ function handleAction(action, dataset) {
     case 'transfer':         showTransferPanel(); return;
     case 'export':           downloadState(); return;
     case 'import':           pickImportFile(); return;
+    case 'expand-entry':     expandEntry(); return;
     default:                 handleRecAction(action, dataset); return;
   }
 }
