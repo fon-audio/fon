@@ -6462,14 +6462,16 @@ function screenShell(titleText, options) {
 
 /* Вход 1 — по состоянию. Шесть карточек, первая шире остальных. */
 function scrollCardToView() {
+  console.log('scrollCardToView начало');
   const host = document.getElementById('recHost');
-  if (!host) return;
+  if (!host) { console.log('recHost не найден'); return; }
   const card = host.querySelector('.rec');
-  if (!card) return;
+  if (!card) { console.log('карточка не найдена'); return; }
 
   const col = document.getElementById('col');
-  if (!col) return;
+  if (!col) { console.log('col не найден'); return; }
 
+  console.log('прокручиваем');
   const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const top = card.getBoundingClientRect().top;
   const colTop = col.getBoundingClientRect().top;
@@ -6492,11 +6494,33 @@ function scrollCardToView() {
 }
 
 function expandEntry() {
+  const oldStateId = state.today.stateId;
+  const oldTaskId = state.today.taskId;
+  const oldGenreId = state.today.genreId;
+
   state.today.entry = null;
-  state.today.stateId = null;
-  state.today.taskId = null;
-  state.today.genreId = null;
   renderScreen({ moveFocus: false });
+
+  requestAnimationFrame(function () {
+    const buttons = document.querySelectorAll('[data-entry]');
+    for (const button of buttons) {
+      const isActive = (button.dataset.entry === 'state' && button.dataset.value === oldStateId)
+        || (button.dataset.entry === 'task' && button.dataset.value === oldTaskId)
+        || (button.dataset.entry === 'genre' && button.dataset.value === oldGenreId);
+      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    }
+
+    const selectedBtn = document.querySelector('[data-entry][aria-pressed="true"]');
+    if (selectedBtn) {
+      const rect = selectedBtn.getBoundingClientRect();
+      const col = document.getElementById('col');
+      if (col) {
+        const colTop = col.getBoundingClientRect().top;
+        const scrollTarget = window.scrollY + rect.top - colTop;
+        window.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+      }
+    }
+  });
 }
 
 function renderCollapsedEntry() {
@@ -6780,13 +6804,10 @@ function selectEntry(entry, value) {
   if (changed) state.today.sourceOverride = null;
   saveState();
 
-  const buttons = document.querySelectorAll('[data-entry]');
-  for (const button of buttons) {
-    const active = button.dataset.entry === entry && button.dataset.value === value;
-    button.setAttribute('aria-pressed', active ? 'true' : 'false');
+  renderScreen({ moveFocus: false });
+  if (changed) {
+    requestAnimationFrame(function () { scrollCardToView(); });
   }
-  renderRecommendation();
-  if (changed) scrollCardToView();
 }
 
 /* Панель выбора профилей. */
