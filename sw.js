@@ -16,10 +16,23 @@ const SHELL = [
   './icon-maskable-512.png'
 ];
 
+function validateCachedShell(cache) {
+  const url = shellUrl();
+  return cache.match(url, { ignoreSearch: true }).then(function (response) {
+    if (!response) return true;
+    return response.text().then(function (text) {
+      const valid = text.length > 100000 && text.endsWith('</html>');
+      if (!valid) return cache.delete(url).then(() => false);
+      return true;
+    }).catch(() => false);
+  });
+}
+
 self.addEventListener('install', function (event) {
   event.waitUntil(
     caches.open(CACHE)
       .then(cache => cache.addAll(SHELL))
+      .then(cache => validateCachedShell(cache))
       .catch(() => { /* нет сети при установке — не страшно, поставимся позже */ })
   );
 });
@@ -94,6 +107,15 @@ self.addEventListener('fetch', function (event) {
   event.respondWith(
     /* ignoreSearch: адрес с «?что-нибудь» — тот же интерфейс. */
     caches.match(request, { ignoreSearch: true }).then(function (cached) {
+      /* Если это оболочка и она обрезана — выкидываем из кеша. */
+      if (cached && isAppShell(url)) {
+        cached.text().then(function (text) {
+          if (text.length <= 100000 || !text.endsWith('</html>')) {
+            caches.open(CACHE).then(cache => cache.delete(shellUrl()));
+          }
+        }).catch(() => {});
+      }
+
       const network = fetch(request).then(function (response) {
         /* Обновляем копию интерфейса, когда сеть есть. */
         if (response && response.status === 200 && response.type === 'basic') {

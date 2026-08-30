@@ -7978,7 +7978,8 @@ function renderMoreData() {
     ]),
     el('p', { class: 'small muted', text: COPY['export.checked'] + ' ' + formatCatalogDate() }),
     moreGroup(null, [
-      el('button', { class: 'more__row more__row--danger', type: 'button', text: COPY['export.clear'], data: { action: 'clear-data' } })
+      el('button', { class: 'more__row more__row--danger', type: 'button', text: COPY['export.clear'], data: { action: 'clear-data' } }),
+      el('button', { class: 'more__row more__row--danger', type: 'button', text: COPY['app.reset'] || 'Сбросить приложение', data: { action: 'app-reset' } })
     ])
   ]);
   return moreScreen(MORE_ITEMS[0].items[4].title, content);
@@ -8644,6 +8645,56 @@ function confirmClearData() {
   });
 }
 
+function confirmAppReset() {
+  showDialog({
+    title: COPY['app.reset'] || 'Сбросить приложение',
+    text: 'Это очистит кеш и служебные файлы. Приложение откроется с нуля.',
+    buttons: [
+      { text: COPY['common.cancel'], kind: 'secondary', focus: true },
+      {
+        text: COPY['app.reset'] || 'Сбросить',
+        kind: 'danger',
+        onClick: function () {
+          const done = { count: 0 };
+          function step() {
+            done.count++;
+            if (done.count >= 3) location.reload();
+          }
+
+          try {
+            if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+              navigator.serviceWorker.getRegistrations()
+                .then(function (rs) {
+                  var chain = Promise.resolve();
+                  rs.forEach(function (r) { chain = chain.then(function () { return r.unregister(); }); });
+                  return chain;
+                })
+                .then(step, step);
+            } else { step(); }
+          } catch (e) { step(); }
+
+          try {
+            if (window.caches && caches.keys) {
+              caches.keys()
+                .then(function (ks) {
+                  var chain = Promise.resolve();
+                  ks.forEach(function (k) { chain = chain.then(function () { return caches.delete(k); }); });
+                  return chain;
+                })
+                .then(step, step);
+            } else { step(); }
+          } catch (e) { step(); }
+
+          try { localStorage.clear(); } catch (e) { }
+          step();
+
+          setTimeout(function () { location.reload(); }, 3000);
+        }
+      }
+    ]
+  });
+}
+
 const SCREENS = {
   today: renderToday,
   music: renderMusic,
@@ -8798,6 +8849,7 @@ function handleAction(action, dataset) {
     case 'export':           downloadState(); return;
     case 'import':           pickImportFile(); return;
     case 'expand-entry':     expandEntry(); return;
+    case 'app-reset':        confirmAppReset(); return;
     default:                 handleRecAction(action, dataset); return;
   }
 }
