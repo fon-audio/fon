@@ -1336,6 +1336,171 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
 
 <script>
 'use strict';
+
+/* ============================================================
+   ФОН — ЭКРАН ОШИБКИ ЗАПУСКА
+   Подготовлено архитектором. Вставлять КАК ЕСТЬ.
+
+   МЕСТО ВСТАВКИ: самая первая строка внутри <script>,
+   до объявления CONFIG и до всего остального.
+   Если этот блок окажется ниже сломанного кода — он не сработает.
+
+   Здесь намеренно нет ни одной функции приложения: ни el(),
+   ни COPY, ни CSS-переменных. Всё, что нужно, — своё.
+   Этот код обязан работать, когда сломано остальное.
+   ============================================================ */
+
+(function () {
+  var shown = false;
+
+  function makeButton(label, primary, onClick) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = label;
+    b.style.cssText =
+      'font:500 15px/1.3 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;' +
+      'padding:12px 18px;border-radius:10px;cursor:pointer;min-height:44px;' +
+      (primary
+        ? 'background:#7E6849;color:#FFFFFF;border:1px solid #7E6849;'
+        : 'background:#FFFFFF;color:#1C1C1E;border:1px solid #C9C9CE;');
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  function hardReset() {
+    var done = 0;
+    function step() { done++; if (done >= 3) location.reload(); }
+
+    try {
+      if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+        navigator.serviceWorker.getRegistrations()
+          .then(function (rs) {
+            var chain = Promise.resolve();
+            rs.forEach(function (r) { chain = chain.then(function () { return r.unregister(); }); });
+            return chain;
+          })
+          .then(step, step);
+      } else { step(); }
+    } catch (e) { step(); }
+
+    try {
+      if (window.caches && caches.keys) {
+        caches.keys()
+          .then(function (ks) {
+            var chain = Promise.resolve();
+            ks.forEach(function (k) { chain = chain.then(function () { return caches.delete(k); }); });
+            return chain;
+          })
+          .then(step, step);
+      } else { step(); }
+    } catch (e) { step(); }
+
+    try { localStorage.clear(); } catch (e) { /* недоступен — и не надо */ }
+    step();
+
+    /* Страховка: если что-то из обещаний зависло, всё равно перезагружаемся. */
+    setTimeout(function () { location.reload(); }, 3000);
+  }
+
+  function describe(info) {
+    var lines = [];
+    if (info.message) lines.push(info.message);
+    if (info.filename) lines.push(info.filename + ':' + (info.lineno || '?') + ':' + (info.colno || '?'));
+    if (info.stack) lines.push('', info.stack);
+    lines.push('', 'Chrome/браузер: ' + navigator.userAgent);
+    lines.push('Экран: ' + window.innerWidth + '×' + window.innerHeight);
+    return lines.join('\n');
+  }
+
+  function showFailure(info) {
+    if (shown) return;
+    shown = true;
+
+    try { document.documentElement.classList.remove('no-transition'); } catch (e) {}
+
+    var box = document.createElement('div');
+    box.setAttribute('role', 'alert');
+    box.style.cssText =
+      'position:fixed;inset:0;z-index:2147483647;overflow:auto;' +
+      'background:#F6F6F4;color:#1C1C1E;' +
+      'font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;' +
+      'padding:32px 20px;box-sizing:border-box;';
+
+    var inner = document.createElement('div');
+    inner.style.cssText = 'max-width:520px;margin:0 auto;';
+
+    var h = document.createElement('h1');
+    h.textContent = 'Приложение не запустилось';
+    h.style.cssText = 'font:600 22px/1.25 inherit;margin:0 0 12px;';
+    inner.appendChild(h);
+
+    var p = document.createElement('p');
+    p.textContent = 'Это ошибка в самом приложении, а не у вас. ' +
+                    'Попробуйте обновить страницу. Если не поможет — сбросьте и начните заново: ' +
+                    'настройки и история при этом сотрутся, но приложение откроется.';
+    p.style.cssText = 'margin:0 0 24px;color:#5A5A5F;';
+    inner.appendChild(p);
+
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:12px;flex-wrap:wrap;margin-bottom:28px;';
+    row.appendChild(makeButton('Обновить страницу', true, function () { location.reload(); }));
+    row.appendChild(makeButton('Сбросить и начать заново', false, hardReset));
+    inner.appendChild(row);
+
+    var det = document.createElement('details');
+    var sum = document.createElement('summary');
+    sum.textContent = 'Показать подробности';
+    sum.style.cssText = 'cursor:pointer;color:#5A5A5F;font-size:15px;min-height:44px;line-height:44px;';
+    det.appendChild(sum);
+
+    var pre = document.createElement('pre');
+    pre.textContent = describe(info);
+    pre.style.cssText =
+      'white-space:pre-wrap;word-break:break-word;margin:12px 0 0;padding:14px;' +
+      'background:#FFFFFF;border:1px solid #E2E2E6;border-radius:10px;' +
+      'font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#1C1C1E;';
+    det.appendChild(pre);
+
+    var copy = makeButton('Скопировать текст ошибки', false, function () {
+      try {
+        navigator.clipboard.writeText(pre.textContent);
+        copy.textContent = 'Скопировано';
+      } catch (e) {
+        copy.textContent = 'Не удалось — выделите текст вручную';
+      }
+    });
+    copy.style.marginTop = '12px';
+    det.appendChild(copy);
+
+    inner.appendChild(det);
+    box.appendChild(inner);
+
+    /* body может ещё не существовать, если сломались на самом верху. */
+    (document.body || document.documentElement).appendChild(box);
+  }
+
+  window.addEventListener('error', function (event) {
+    showFailure({
+      message: event.message || String(event.error || 'Неизвестная ошибка'),
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+      stack: event.error && event.error.stack
+    });
+  });
+
+  window.addEventListener('unhandledrejection', function (event) {
+    var r = event.reason;
+    showFailure({
+      message: 'Необработанный отказ: ' + ((r && r.message) || String(r)),
+      stack: r && r.stack
+    });
+  });
+
+  /* Приложению нужен способ показать этот экран самому — из safeStep. */
+  window.__fonShowFailure = showFailure;
+}());
+
 (function () {
 
 /* ============================================================
