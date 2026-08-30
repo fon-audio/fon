@@ -1264,6 +1264,37 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* ============================================================
+   БЛОК: УВЕДОМЛЕНИЕ ОБ ОШИБКАХ ЗАПУСКА
+   ============================================================ */
+.startup-notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  margin-top: 16px;
+}
+
+.startup-notice-toggle {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font: inherit;
+}
+
+.startup-notice-toggle:hover { color: var(--text-primary); }
 </style>
 </head>
 <body>
@@ -1500,6 +1531,19 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
   /* Приложению нужен способ показать этот экран самому — из safeStep. */
   window.__fonShowFailure = showFailure;
 }());
+
+const startupErrors = [];
+
+function safeStep(name, fn) {
+  try { fn(); }
+  catch (e) {
+    if (name === 'mountIconSprite' || name === 'loadState' || name === 'refreshSourceIndex' || name === 'renderNav') {
+      window.__fonShowFailure({ message: name + ': ' + (e && e.message), stack: e && e.stack });
+    } else {
+      startupErrors.push(name + ': ' + (e && e.message));
+    }
+  }
+}
 
 (function () {
 
@@ -3192,6 +3236,17 @@ for (const group of GENRE_GROUPS) GENRE_BY_ID[group.id] = group;
 
 /* Свой источник приводится к формату каталога: подбор не должен
    отличать его от наших (07-ARCH-v4.md §13.1). */
+/* Проверка адреса: только https:// или http://. Защита от javascript: и подобного. */
+function safeUrl(value) {
+  if (typeof value !== 'string') return '';
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' || url.protocol === 'http:' ? value : '';
+  } catch (e) {
+    return '';
+  }
+}
+
 function normalizeOwnSource(item) {
   const kind = item.play && item.play.kind === 'stream' ? 'stream' : 'external';
   const url = (item.play && item.play.url) || item.page || '';
@@ -3207,8 +3262,8 @@ function normalizeOwnSource(item) {
     rhythm: item.rhythm || 'medium',
     intensity: typeof item.intensity === 'number' ? item.intensity : 3,
     masksSpeech: item.masksSpeech === true,
-    play: { kind: kind, url: kind === 'stream' ? url : '' },
-    page: url,
+    play: { kind: kind, url: kind === 'stream' ? safeUrl(url) : '' },
+    page: safeUrl(url),
     mobileBg: kind === 'stream',
     status: 'own',
     flags: [],
@@ -7267,6 +7322,14 @@ function showOwnSourceForm() {
           const name = title.value.trim();
           const link = url.value.trim();
           if (!name || !link) return;
+          const safe = safeUrl(link);
+          if (!safe) {
+            updateSessionNotice(); /* очистить старое сообщение */
+            state.session = state.session || {};
+            state.session.notice = 'Нужен адрес, начинающийся с https://';
+            updateSessionNotice();
+            return;
+          }
           addOwnSource(name, link, chosenModes, kind);
         }
       }
@@ -8491,12 +8554,41 @@ function renderScreen(options) {
      в этом запуске: после перезагрузки страницы экран остаётся чистым. */
   if (state.screen === 'today' && state.today.rec) renderRecommendation();
   if (state.screen === 'music') renderMusicResults();
+  /* Показываем уведомление об ошибках запуска. */
+  renderStartupNotice();
   /* Фокус на заголовок нового экрана — но не воруем фокус при
      первой загрузке страницы. */
   if (opts.moveFocus) {
     const heading = section.querySelector('h1');
     if (heading) heading.focus();
   }
+}
+
+function renderStartupNotice() {
+  if (startupErrors.length === 0) return;
+  const col = document.getElementById('col');
+  if (!col) return;
+  const toggle = el('button', {
+    type: 'button',
+    class: 'startup-notice-toggle',
+    text: '↓',
+    attrs: { 'aria-label': 'Показать ошибки', 'aria-expanded': 'false' }
+  });
+  const notice = el('div', { class: 'startup-notice', attrs: { role: 'status' } }, [
+    el('span', { text: 'Часть возможностей недоступна в этом браузере' }),
+    toggle
+  ]);
+  const details = el('div', { class: 'startup-errors', style: { display: 'none', fontSize: '13px', lineHeight: '1.5', color: 'var(--text-secondary)', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--border-color)' } });
+  for (const err of startupErrors) {
+    details.appendChild(el('div', { text: err }));
+  }
+  notice.appendChild(details);
+  toggle.addEventListener('click', function () {
+    const isOpen = details.style.display !== 'none';
+    details.style.display = isOpen ? 'none' : 'block';
+    this.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+  });
+  col.appendChild(notice);
 }
 
 /* ============================================================
@@ -9620,34 +9712,40 @@ function iconForTask(taskId) {
 }
 
 function start() {
-  mountIconSprite();
-  state.data = loadState();
-  refreshSourceIndex();
+  safeStep('mountIconSprite', () => mountIconSprite());
+  safeStep('loadState', () => { state.data = loadState(); });
+  safeStep('refreshSourceIndex', () => refreshSourceIndex());
   /* Записка на завтра живёт ровно один запуск. */
-  if (state.data.tomorrow && state.data.tomorrow.shown) {
-    state.data.tomorrow = null;
-    saveState();
-  }
+  safeStep('tomorrowNotice', () => {
+    if (state.data.tomorrow && state.data.tomorrow.shown) {
+      state.data.tomorrow = null;
+      saveState();
+    }
+  });
   /* Последняя задача подсвечивается, но рекомендация сама не разворачивается:
      экран должен оставаться чистым. */
-  if (state.data.settings.lastTaskId && TASK_BY_ID[state.data.settings.lastTaskId]) {
-    state.today.taskId = state.data.settings.lastTaskId;
-  }
+  safeStep('restoreLastTask', () => {
+    if (state.data.settings.lastTaskId && TASK_BY_ID[state.data.settings.lastTaskId]) {
+      state.today.taskId = state.data.settings.lastTaskId;
+    }
+  });
 
-  document.getElementById('appTitle').textContent = COPY['app.title'];
-  renderNav();
-  applyTheme();
-  showStorageNotice();
-  readHash({ moveFocus: false });
-  bindEvents();
-  bindScrollToTop();
-  bindPlayerEvents();
-  bindMediaSession();
-  tabs.open();
-  bindInstallPrompt();
-  registerServiceWorker();
-  offerTransferImport();
-  offerResumeSession();
+  safeStep('setAppTitle', () => {
+    document.getElementById('appTitle').textContent = COPY['app.title'];
+  });
+  safeStep('renderNav', () => renderNav());
+  safeStep('applyTheme', () => applyTheme());
+  safeStep('showStorageNotice', () => showStorageNotice());
+  safeStep('readHash', () => readHash({ moveFocus: false }));
+  safeStep('bindEvents', () => bindEvents());
+  safeStep('bindScrollToTop', () => bindScrollToTop());
+  safeStep('bindPlayerEvents', () => bindPlayerEvents());
+  safeStep('bindMediaSession', () => bindMediaSession());
+  safeStep('tabs.open', () => tabs.open());
+  safeStep('bindInstallPrompt', () => bindInstallPrompt());
+  safeStep('registerServiceWorker', () => registerServiceWorker());
+  safeStep('offerTransferImport', () => offerTransferImport());
+  safeStep('offerResumeSession', () => offerResumeSession());
   /* Разрешаем переходы только после первой отрисовки. */
   requestAnimationFrame(function () {
     requestAnimationFrame(function () { document.documentElement.classList.remove('no-transition'); });
