@@ -5,7 +5,7 @@
    это чужие потоки, на них нужен интернет.
    ============================================================ */
 
-const CACHE = 'fon-ui-v4';
+const CACHE = 'fon-ui-v5';
 
 const SHELL = [
   './',
@@ -31,8 +31,7 @@ function validateCachedShell(cache) {
 self.addEventListener('install', function (event) {
   event.waitUntil(
     caches.open(CACHE)
-      .then(cache => cache.addAll(SHELL))
-      .then(cache => validateCachedShell(cache))
+      .then(cache => cache.addAll(SHELL).then(() => validateCachedShell(cache)))
       .catch(() => { /* нет сети при установке — не страшно, поставимся позже */ })
   );
 });
@@ -109,7 +108,7 @@ self.addEventListener('fetch', function (event) {
     caches.match(request, { ignoreSearch: true }).then(function (cached) {
       /* Если это оболочка и она обрезана — выкидываем из кеша. */
       if (cached && isAppShell(url)) {
-        cached.text().then(function (text) {
+        cached.clone().text().then(function (text) {
           if (text.length <= 100000 || !text.endsWith('</html>')) {
             caches.open(CACHE).then(cache => cache.delete(shellUrl()));
           }
