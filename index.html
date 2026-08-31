@@ -4541,7 +4541,9 @@ function updateMediaSession() {
       album: COPY['app.title']
     });
   } catch (e) { /* MediaMetadata может отсутствовать — не ломаемся */ }
-  navigator.mediaSession.playbackState = session.pausedAt ? 'paused' : 'playing';
+  const audio = player.audio;
+  const isPlaying = audio && !audio.paused && player.source;
+  navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
 }
 
 function bindMediaSession() {
@@ -4550,10 +4552,9 @@ function bindMediaSession() {
     try { navigator.mediaSession.setActionHandler(action, handler); }
     catch (e) { /* браузер не знает такого действия — пропускаем */ }
   };
-  set('play', function () { if (state.session && state.session.pausedAt) togglePause(); });
-  set('pause', function () { if (state.session && !state.session.pausedAt) togglePause(); });
+  set('play', function () { player.resume(); });
+  set('pause', function () { player.pause(); });
   set('nexttrack', function () { if (state.session) nextSource(); });
-  set('stop', function () { if (state.session) finishSession({}); });
 }
 
 /* ============================================================
@@ -5593,6 +5594,7 @@ function startSession(options) {
   startPlayback(source);
   if (opts.hint) state.session.hint = opts.hint;
   updateMediaSession();
+  bindMediaSession();
   renderUpdateBar();
   tabs.announce('session-started');
   persistActiveSession();
