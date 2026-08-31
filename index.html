@@ -6502,6 +6502,10 @@ function updateMiniPanel() {
   }
 
   const mode = MODE_BY_ID[session.modeId];
+  /* Источник нужен, чтобы решить, показывать ли эквалайзер. Без этой
+     строки обращение к source прерывало функцию сразу после очистки
+     панели — полоса оставалась пустым прямоугольником. */
+  const source = SOURCE_BY_ID[session.sourceId] || ownSourceById(session.sourceId);
   const miniTask = session.taskId ? TASK_BY_ID[session.taskId] : null;
   const miniTitle = mode ? mode.title : (miniTask ? miniTask.title : '');
   panel.textContent = '';
