@@ -8880,19 +8880,17 @@ function handleAction(action, dataset) {
 let scrollToTopPending = false;
 
 function updateScrollToTopVisibility() {
+  /* Флаг снимаем ВСЕГДА и первым делом. Раньше он снимался только
+     в ветке показа: одна прокрутка вверху страницы — и обработчик
+     умирал до перезагрузки, кнопка не появлялась больше никогда. */
+  scrollToTopPending = false;
+
   const btn = document.getElementById('scrollToTopBtn');
   if (!btn) return;
 
   const threshold = window.innerHeight * 1.5;
   const scrolled = window.scrollY || window.pageYOffset || 0;
-  const shouldShow = scrolled > threshold;
-
-  if (shouldShow && btn.classList.contains('hidden')) {
-    btn.classList.remove('hidden');
-    scrollToTopPending = false;
-  } else if (!shouldShow && !btn.classList.contains('hidden')) {
-    btn.classList.add('hidden');
-  }
+  btn.classList.toggle('hidden', scrolled <= threshold);
 }
 
 function handleScrollToTopScroll() {
