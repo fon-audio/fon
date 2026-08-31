@@ -3490,6 +3490,7 @@ const COPY = {
   'session.quietVolume': 'Тихая громкость',
   'session.timeUp': 'Время вышло',
   'session.time.remaining': 'осталось',
+  'session.time.remaining.one': 'осталась',
   'session.time.running': 'идёт',
 
   'result.title': 'Сессия завершена',
@@ -5522,9 +5523,10 @@ function formatSessionTimeRemaining(ms, session) {
     return COPY['session.time.running'] + ' ' + minutes + ' ' + pluralMinutes(minutes);
   }
 
-  /* Время осталось — "осталось N минут" или "осталось меньше минуты" */
+  /* Время осталось — "осталось N минут" или "осталась 1 минута" */
+  const remainingWord = minutes === 1 ? COPY['session.time.remaining.one'] : COPY['session.time.remaining'];
   if (minutes === 0) return COPY['session.time.remaining'] + ' меньше минуты';
-  return COPY['session.time.remaining'] + ' ' + minutes + ' ' + pluralMinutes(minutes);
+  return remainingWord + ' ' + minutes + ' ' + pluralMinutes(minutes);
 }
 
 /* Включение источника и подпись под таймером о том, что происходит. */
@@ -5882,9 +5884,8 @@ function updateTimerDisplay() {
     const left = session.plannedMinutes * 60000 - sessionElapsedMs();
     if (left <= 0) {
       session.timeUp = true;
-      const announce = document.getElementById('sessionAnnounce');
-      if (announce) announce.textContent = COPY['session.timeUp'];
-      finishSession({ timeUp: true });
+      persistActiveSession();
+      renderSession();
     }
   }
 }
