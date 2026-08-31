@@ -5517,10 +5517,12 @@ function formatSessionTimeRemaining(ms, session) {
     return COPY['session.time.running'] + ' ' + minutes + ' ' + pluralMinutes(minutes);
   }
 
-  /* Время вышло — "идёт N минут" */
+  /* Время вышло — "идёт N минут" (считаем прошедшее время, не остаток) */
   if (session.timeUp) {
-    if (minutes === 0) return COPY['session.time.running'] + ' меньше минуты';
-    return COPY['session.time.running'] + ' ' + minutes + ' ' + pluralMinutes(minutes);
+    const elapsed = Date.now() - session.startedAtMs - (session.pausedTotalMs || 0);
+    const elapsedMinutes = Math.round(elapsed / 60000);
+    if (elapsedMinutes === 0) return COPY['session.time.running'] + ' меньше минуты';
+    return COPY['session.time.running'] + ' ' + elapsedMinutes + ' ' + pluralMinutes(elapsedMinutes);
   }
 
   /* Время осталось — "осталось N минут" или "осталась 1 минута" */
