@@ -4083,6 +4083,7 @@ const state = {
 
   ui: { startersOpen: false, musicQuery: '', openGenre: null, openTile: null, moreView: null },
                             /* мелкое состояние, не переживает перезагрузку */
+  scrollMemory: {},         /* памятьпрокрутки: ключ экрана → позиция прокрутки */
   updateWaiting: null,      /* новый сервис-воркер ждёт очереди */
   updateReady: false,       /* новая копия интерфейса уже в кеше */
   updateAccepted: false,
@@ -5558,6 +5559,8 @@ function startSession(options) {
   const opts = options || {};
   const rec = opts.rec || state.today.rec || currentRecommendation();
   if (!rec) return;
+  /* Сессия началась — прокрутка главного экрана больше не нужна. */
+  forgetTodayScroll();
   const source = SOURCE_BY_ID[rec.sourceId];
   if (!source) return;
 
@@ -9035,6 +9038,47 @@ function resetPageScroll() {
   if (btn) btn.classList.add('hidden');
 }
 
+/* ---------- Память прокрутки по экранам (S17-01…03) ----------
+   Одно место на всё приложение: через readHash() проходят и нижние
+   вкладки, и «← Назад» внутри «Ещё», и открытие жанра. Системная
+   кнопка «назад» работает своим восстановлением прокрутки и здесь
+   не трогается — она и так возвращает на место.
+
+   Живёт только в рамках одного открытия приложения: в localStorage
+   не сохраняется. Утром человек должен видеть начало, а не вчерашнюю
+   середину каталога.
+*/
+let currentScrollKey = 'today';
+
+function screenKeyFromHash() {
+  const id = (location.hash || '').replace('#', '');
+  return id || 'today';
+}
+
+/* Запомнить, где человек остановился на экране, который сейчас уходит. */
+function rememberScroll() {
+  if (state.view === 'session') return;
+  state.scrollMemory[currentScrollKey] = window.scrollY || window.pageYOffset || 0;
+}
+
+/* Вернуть прокрутку после отрисовки нового экрана. До неё высота
+   ещё нулевая и scrollTo уходит в никуда — поэтому requestAnimationFrame. */
+function restoreScroll(key) {
+  currentScrollKey = key;
+  const saved = state.scrollMemory[key] || 0;
+  requestAnimationFrame(function () {
+    window.scrollTo(0, saved);
+    const btn = document.getElementById('scrollToTopBtn');
+    if (btn) btn.classList.toggle('hidden', saved <= window.innerHeight * 1.5);
+  });
+}
+
+/* Сессия началась — прокрутка главного экрана больше не нужна:
+   после сессии человек возвращается к новому выбору. */
+function forgetTodayScroll() {
+  delete state.scrollMemory.today;
+}
+
 function bindEvents() {
   document.getElementById('themeBtn').addEventListener('click', cycleTheme);
 
@@ -9125,7 +9169,7 @@ function readHash(options) {
   if ((location.hash || '').indexOf('#s=') === 0) return;
   const id = (location.hash || '').replace('#', '');
 
-  resetPageScroll();
+  rememberScroll();
 
   if (id === 'session' && state.session) {
     const entering = state.view !== 'session';
@@ -9156,7 +9200,8 @@ function readHash(options) {
   markCurrentNav();
   renderScreen({ moveFocus: opts.moveFocus && changed });
   updateMiniPanel();
-  if (openGenreId) scrollToDiscover();
+  if (openGenreId) { currentScrollKey = screenKeyFromHash(); scrollToDiscover(); }
+  else restoreScroll(screenKeyFromHash());
 }
 
 /* ============================================================
