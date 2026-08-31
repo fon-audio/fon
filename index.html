@@ -6462,16 +6462,14 @@ function screenShell(titleText, options) {
 
 /* Вход 1 — по состоянию. Шесть карточек, первая шире остальных. */
 function scrollCardToView() {
-  console.log('scrollCardToView начало');
   const host = document.getElementById('recHost');
-  if (!host) { console.log('recHost не найден'); return; }
+  if (!host) { return; }
   const card = host.querySelector('.rec');
-  if (!card) { console.log('карточка не найдена'); return; }
+  if (!card) { return; }
 
   const col = document.getElementById('col');
-  if (!col) { console.log('col не найден'); return; }
+  if (!col) { return; }
 
-  console.log('прокручиваем');
   const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const top = card.getBoundingClientRect().top;
   const colTop = col.getBoundingClientRect().top;
@@ -6805,6 +6803,9 @@ function selectEntry(entry, value) {
   saveState();
 
   renderScreen({ moveFocus: false });
+  /* renderScreen() пересоздаёт пустой #recHost — карточку надо нарисовать
+     заново, иначе на экране не остаётся кнопки «Начать сессию». */
+  renderRecommendation();
   if (changed) {
     requestAnimationFrame(function () { scrollCardToView(); });
   }
