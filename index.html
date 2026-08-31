@@ -4538,7 +4538,11 @@ function updateMediaSession() {
     navigator.mediaSession.metadata = new window.MediaMetadata({
       title: source ? source.title : '',
       artist: mode ? mode.title : (metaTask ? metaTask.title : ''),
-      album: COPY['app.title']
+      album: COPY['app.title'],
+      artwork: [
+        { src: './icon-192.png', sizes: '192x192', type: 'image/png' },
+        { src: './icon-512.png', sizes: '512x512', type: 'image/png' }
+      ]
     });
   } catch (e) { /* MediaMetadata может отсутствовать — не ломаемся */ }
   const audio = player.audio;
@@ -5797,7 +5801,14 @@ function renderSession(options) {
     data: { action: 'session-finish' }
   });
 
-  const controls = [pauseBtn];
+  const collapseBtn = el('button', {
+    class: 'iconbtn session__dim',
+    type: 'button',
+    data: { action: 'collapse-session' },
+    attrs: { 'aria-label': 'Свернуть' }
+  }, [icon('i-down')]);
+
+  const controls = [collapseBtn, pauseBtn];
   if (ownFailed) {
     controls.push(el('button', {
       class: 'btn btn--secondary session__dim',
@@ -8897,6 +8908,7 @@ function handleAction(action, dataset) {
     case 'session-pause':    togglePause(); return;
     case 'session-next':     nextSource(); return;
     case 'session-finish':   finishSession({}); return;
+    case 'collapse-session': history.back(); return;
     case 'session-mistakes': showCorrection(); return;
     case 'open-session':     location.hash = '#session'; return;
     case 'rate':             rateSession(Number(dataset.value)); return;
