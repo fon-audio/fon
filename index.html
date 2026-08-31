@@ -763,8 +763,8 @@ a { color: var(--accent-ink); }
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-  font-size: 17px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
   color: var(--text);
 }
 
@@ -776,7 +776,20 @@ a { color: var(--accent-ink); }
   font-variant-numeric: tabular-nums;
 }
 
-.session__source { font-size: 17px; font-weight: 600; }
+.session__status-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin: var(--sp-3) 0;
+}
+
+.session__source {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text);
+  margin: var(--sp-3) 0;
+}
+
 .session__genre { font-size: 14px; color: var(--text-2); }
 .session__hints { font-size: 14px; color: var(--text-2); }
 
@@ -788,15 +801,22 @@ a { color: var(--accent-ink); }
   gap: var(--sp-3);
 }
 
-/* Затухание через 20 секунд бездействия. Таймер не приглушается. */
+/* Затухание через 20 секунд бездействия. Строка состояния не приглушается. */
 .session__dim { transition: opacity var(--dur-slow) var(--ease); }
 .session--idle .session__dim { opacity: .35; }
+.session--idle .session__status-row { opacity: 1; }
 
 .session__notice { font-size: 14px; color: var(--text-2); min-height: 1.55em; }
-.session__status { font-size: 13px; color: var(--text-2); min-height: 1.55em; }
+.session__status {
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--text-1);
+  min-height: 1.55em;
+}
 
 .session__source-row { display: flex; align-items: center; gap: var(--sp-2); justify-content: space-between; }
-.session__equalizer { display: flex; align-items: center; color: var(--text-2); width: 20px; height: 16px; }
+.session__equalizer { display: flex; align-items: center; color: var(--text-1); width: 20px; height: 20px; }
+.session__status-eq { width: 20px; height: 20px; }
 
 .equalizer-icon { display: block; width: 16px; height: 12px; }
 .equalizer-bar { animation: equalizer 0.6s ease-in-out infinite; transform-origin: center bottom; }
@@ -5468,6 +5488,13 @@ function formatClock(ms) {
   return hours > 0 ? hours + ':' + mm + ':' + ss : mm + ':' + ss;
 }
 
+function formatClockMinutesOnly(ms) {
+  const total = Math.floor(ms / 1000);
+  const minutes = Math.floor(total / 60);
+  if (minutes === 0) return 'меньше минуты';
+  return minutes + (minutes % 10 === 1 && minutes % 100 !== 11 ? ' минута' : ' минут');
+}
+
 /* Включение источника и подпись под таймером о том, что происходит. */
 function startPlayback(source) {
   if (!state.session) return;
@@ -5641,47 +5668,49 @@ function renderSession(options) {
   root.classList.remove('hidden');
   root.classList.remove('session--idle');
 
+  /* Верхняя строка: режим + время (только минуты), приглушённо, мелко */
   const modeLine = el('div', {
     class: 'session__mode session__dim',
     attrs: { tabindex: '-1', id: 'sessionHeading' }
   }, [
     mode ? meaningIcon(ICON_BY_MODE[mode.id]) : null,
     mode ? el('span', { class: 'dot dot--' + mode.id }) : null,
-    el('span', { text: heading })
+    el('span', { text: heading }),
+    el('span', { text: ' · ' }),
+    el('span', {
+      text: formatClockMinutesOnly(sessionDisplayMs()),
+      attrs: { id: 'sessionTimer', 'aria-live': 'off' }
+    })
   ]);
   root.appendChild(modeLine);
 
-  root.appendChild(el('div', {
-    class: 'session__timer',
-    text: formatClock(sessionDisplayMs()),
-    attrs: { id: 'sessionTimer', 'aria-live': 'off', role: 'timer' }
-  }));
+  /* Вторая строка: эквалайзер + состояние звука (НЕ приглушённо) */
+  const statusLine = [];
 
-  const sourceLine = [
-    el('p', { class: 'session__source', text: source.title })
-  ];
-
-  /* Индикатор эквалайзера для потоков, когда реально играет. */
-  if (source.play.kind === 'stream' && session.isPlaying) {
-    const eqContainer = el('div', { class: 'session__equalizer' }, [
+  /* Эквалайзер — для потоков или состояний, где есть звук */
+  if (source.play.kind === 'stream') {
+    const eqContainer = el('div', { class: 'session__equalizer session__status-eq' }, [
       renderEqualizer(true)
     ]);
-    sourceLine.push(eqContainer);
+    statusLine.push(eqContainer);
   }
 
-  root.appendChild(el('div', { class: 'session__dim session__source-row' }, sourceLine));
+  statusLine.push(el('p', {
+    class: 'session__status',
+    id: 'sessionStatus',
+    text: computeSessionStatus(source, session),
+    attrs: { style: 'color: var(--text-1)' }
+  }));
 
+  root.appendChild(el('div', { class: 'session__status-row' }, statusLine));
+
+  /* Название источника — крупно */
+  root.appendChild(el('p', { class: 'session__source', text: source.title }));
+
+  /* Жанр — приглушённо */
   if (source.genre && source.genre !== '—') {
     root.appendChild(el('p', { class: 'session__genre session__dim', text: source.genre }));
   }
-
-  /* Отдельная строка состояния звука. */
-  const statusDiv = el('p', {
-    class: 'session__status session__dim',
-    id: 'sessionStatus',
-    text: computeSessionStatus(source, session)
-  });
-  root.appendChild(statusDiv);
 
   const pauseBtn = el('button', {
     class: 'btn btn--secondary session__dim',
@@ -5810,7 +5839,7 @@ function updateTimerDisplay() {
   if (!session) return;
 
   const node = document.getElementById('sessionTimer');
-  if (node) node.textContent = formatClock(sessionDisplayMs());
+  if (node) node.textContent = formatClockMinutesOnly(sessionDisplayMs());
 
   const mini = document.getElementById('miniTime');
   if (mini) mini.textContent = formatClock(sessionDisplayMs());
