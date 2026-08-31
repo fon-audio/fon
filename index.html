@@ -9064,8 +9064,11 @@ function readHash(options) {
     return;
   }
 
+  /* Уходим из сессии: закрываем оверлей и оживляем навигацию */
+  const wasInSession = state.view === 'session';
   state.view = 'app';
   hideSessionScreen();
+  if (wasInSession) setShellInert(false);
 
   /* Хеш сессии без самой сессии — возвращаемся на «Сегодня». */
   if (id === 'session') { location.replace('#today'); return; }
