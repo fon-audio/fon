@@ -6506,8 +6506,7 @@ function updateMiniPanel() {
      строки обращение к source прерывало функцию сразу после очистки
      панели — полоса оставалась пустым прямоугольником. */
   const source = SOURCE_BY_ID[session.sourceId] || ownSourceById(session.sourceId);
-  const miniTask = session.taskId ? TASK_BY_ID[session.taskId] : null;
-  const miniTitle = mode ? mode.title : (miniTask ? miniTask.title : '');
+  const miniTitle = source ? source.title : '';
   panel.textContent = '';
   panel.classList.remove('hidden');
 
@@ -6522,7 +6521,7 @@ function updateMiniPanel() {
     miniEqContainer,
     mode ? el('span', { class: 'dot dot--' + mode.id }) : null,
     el('span', { text: miniTitle }),
-    el('span', { class: 'mini__time', text: formatClock(sessionDisplayMs()), attrs: { id: 'miniTime' } })
+    el('span', { class: 'mini__time', text: formatSessionTimeRemaining(sessionDisplayMs(), session), attrs: { id: 'miniTime' } })
   ]);
   panel.appendChild(open);
 
