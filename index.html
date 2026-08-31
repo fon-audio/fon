@@ -6475,11 +6475,7 @@ function scrollCardToView() {
   const colTop = col.getBoundingClientRect().top;
   const scrollTarget = window.scrollY + top - colTop;
 
-  if (prefersReduced) {
-    window.scrollTo(0, scrollTarget);
-  } else {
-    window.scrollTo({ top: scrollTarget, behavior: 'smooth' });
-  }
+  scrollWindowTo(scrollTarget);
 
   const heading = card.querySelector('h2, h3, h4, h5, h6, [data-heading]');
   if (heading) {
@@ -8899,16 +8895,33 @@ function handleScrollToTopScroll() {
   requestAnimationFrame(updateScrollToTopVisibility);
 }
 
+/* Плавная прокрутка есть не везде: в части браузеров и раскладок
+   scrollTo с behavior:'smooth' молча не выполняется. Пробуем плавно,
+   и если через четверть секунды страница не сдвинулась — прыгаем сразу.
+   Прокрутка обязана произойти всегда, плавность — необязательна. */
+function scrollWindowTo(top) {
+  const start = window.scrollY || window.pageYOffset || 0;
+  const target = Math.max(0, Math.round(top));
+  if (Math.abs(start - target) < 2) return;
+
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduced) { window.scrollTo(0, target); return; }
+
+  try { window.scrollTo({ top: target, behavior: 'smooth' }); }
+  catch (e) { window.scrollTo(0, target); return; }
+
+  setTimeout(function () {
+    const now = window.scrollY || window.pageYOffset || 0;
+    if (Math.abs(now - start) < 2) window.scrollTo(0, target);
+  }, 250);
+}
+
 function bindScrollToTop() {
   const btn = document.getElementById('scrollToTopBtn');
   if (!btn) return;
 
   btn.addEventListener('click', function () {
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    window.scrollTo({
-      top: 0,
-      behavior: prefersReduced ? 'auto' : 'smooth'
-    });
+    scrollWindowTo(0);
   });
 
   window.addEventListener('scroll', handleScrollToTopScroll, { passive: true });
