@@ -3489,6 +3489,8 @@ const COPY = {
   'session.noVocals': 'Без вокала',
   'session.quietVolume': 'Тихая громкость',
   'session.timeUp': 'Время вышло',
+  'session.time.remaining': 'осталось',
+  'session.time.running': 'идёт',
 
   'result.title': 'Сессия завершена',
   'result.question': 'Как работалось?',
@@ -5488,11 +5490,41 @@ function formatClock(ms) {
   return hours > 0 ? hours + ':' + mm + ':' + ss : mm + ':' + ss;
 }
 
+function pluralMinutes(n) {
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 14) return 'минут';
+  const mod10 = n % 10;
+  if (mod10 === 1) return 'минута';
+  if (mod10 >= 2 && mod10 <= 4) return 'минуты';
+  return 'минут';
+}
+
 function formatClockMinutesOnly(ms) {
   const total = Math.floor(ms / 1000);
   const minutes = Math.floor(total / 60);
   if (minutes === 0) return 'меньше минуты';
-  return minutes + (minutes % 10 === 1 && minutes % 100 !== 11 ? ' минута' : ' минут');
+  return minutes + ' ' + pluralMinutes(minutes);
+}
+
+function formatSessionTimeRemaining(ms, session) {
+  const total = Math.floor(ms / 1000);
+  const minutes = Math.floor(total / 60);
+
+  /* Нет запланированной длительности — показываем "идёт N минут" */
+  if (!session || !session.plannedMinutes) {
+    if (minutes === 0) return COPY['session.time.running'] + ' меньше минуты';
+    return COPY['session.time.running'] + ' ' + minutes + ' ' + pluralMinutes(minutes);
+  }
+
+  /* Время вышло — "идёт N минут" */
+  if (session.timeUp) {
+    if (minutes === 0) return COPY['session.time.running'] + ' меньше минуты';
+    return COPY['session.time.running'] + ' ' + minutes + ' ' + pluralMinutes(minutes);
+  }
+
+  /* Время осталось — "осталось N минут" или "осталось меньше минуты" */
+  if (minutes === 0) return COPY['session.time.remaining'] + ' меньше минуты';
+  return COPY['session.time.remaining'] + ' ' + minutes + ' ' + pluralMinutes(minutes);
 }
 
 /* Включение источника и подпись под таймером о том, что происходит. */
@@ -5678,7 +5710,7 @@ function renderSession(options) {
     el('span', { text: heading }),
     el('span', { text: ' · ' }),
     el('span', {
-      text: formatClockMinutesOnly(sessionDisplayMs()),
+      text: formatSessionTimeRemaining(sessionDisplayMs(), session),
       attrs: { id: 'sessionTimer', 'aria-live': 'off' }
     })
   ]);
@@ -5839,7 +5871,7 @@ function updateTimerDisplay() {
   if (!session) return;
 
   const node = document.getElementById('sessionTimer');
-  if (node) node.textContent = formatClockMinutesOnly(sessionDisplayMs());
+  if (node) node.textContent = formatSessionTimeRemaining(sessionDisplayMs(), session);
 
   const mini = document.getElementById('miniTime');
   if (mini) mini.textContent = formatClock(sessionDisplayMs());
