@@ -833,6 +833,12 @@ a { color: var(--accent-ink); }
   .equalizer-bar { animation: none; opacity: 1; }
 }
 
+/* Состояние подключения: эквалайзер приглушён и не анимирован */
+.session__eq--connecting .equalizer-bar {
+  animation: none;
+  opacity: 0.45;
+}
+
 /* Полоса рабочего ритма: внизу экрана сессии, таймер не трогает */
 .rhythm {
   position: absolute;
@@ -1047,6 +1053,8 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
   cursor: pointer;
 }
 .mini__time { font-variant-numeric: tabular-nums; color: var(--text-2); }
+.mini__eq { display: flex; align-items: center; width: 16px; height: 12px; flex-shrink: 0; }
+
 @media (min-width: 768px) {
   .mini {
     bottom: 0;
@@ -5724,10 +5732,16 @@ function renderSession(options) {
   /* Вторая строка: эквалайзер + состояние звука (НЕ приглушённо) */
   const statusLine = [];
 
-  /* Эквалайзер — для потоков или состояний, где есть звук */
-  if (source.play.kind === 'stream') {
-    const eqContainer = el('div', { class: 'session__equalizer session__status-eq' }, [
-      renderEqualizer(true)
+  /* Четыре состояния: играет / подключаюсь / на паузе / без звука */
+  if (source.play.kind === 'stream' && !session.pausedAt) {
+    let eqClass = 'session__equalizer session__status-eq';
+    if (session.isPlaying) {
+      eqClass += ' session__eq--playing';
+    } else {
+      eqClass += ' session__eq--connecting';
+    }
+    const eqContainer = el('div', { class: eqClass }, [
+      renderEqualizer(session.isPlaying)
     ]);
     statusLine.push(eqContainer);
   }
@@ -6480,11 +6494,15 @@ function updateMiniPanel() {
   panel.textContent = '';
   panel.classList.remove('hidden');
 
+  const miniEqContainer = source && source.play.kind === 'stream' && !session.pausedAt ?
+    el('div', { class: 'mini__eq' }, [renderEqualizer(session.isPlaying)]) : null;
+
   const open = el('button', {
     class: 'mini__open',
     type: 'button',
     data: { action: 'open-session' }
   }, [
+    miniEqContainer,
     mode ? el('span', { class: 'dot dot--' + mode.id }) : null,
     el('span', { text: miniTitle }),
     el('span', { class: 'mini__time', text: formatClock(sessionDisplayMs()), attrs: { id: 'miniTime' } })
