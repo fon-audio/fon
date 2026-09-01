@@ -860,6 +860,26 @@ a { color: var(--accent-ink); }
 .volume__label { font-size: 14px; color: var(--text-2); }
 .volume__input { width: 180px; max-width: 60vw; accent-color: var(--accent); height: 44px; }
 
+/* Строка «Не нашли своё занятие?» и вводная в «Музыке» */
+.entry__notfound {
+  display: block;
+  margin-top: var(--sp-3);
+  min-height: 44px;
+  color: var(--text-2);
+  font-size: 14px;
+  text-align: left;
+  padding-left: 0;
+}
+.music__intro {
+  margin: 0 0 var(--sp-5);
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 60ch;
+}
+.source__actions { display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: center; }
+.source__play { min-height: 44px; }
+
 /* Кнопка "Наверх" */
 .scroll-to-top {
   position: fixed;
@@ -3545,6 +3565,10 @@ const COPY = {
   'music.all': 'Все источники',
   'music.open': 'Открыть',
   'music.details': 'Подробнее',
+  'music.play': 'Включить',
+  'music.openSite': 'Открыть на сайте',
+  'music.intro': 'Это интернет-радио. Играет прямо в приложении, ставить ничего не надо. Рекламы нет ни на одной станции.',
+  'today.notFound': 'Не нашли своё занятие?',
   'music.search': 'Поиск по названию, сервису, жанру',
   'music.found': 'Найдено:',
   'music.nothing': 'Ничего не нашлось.',
@@ -3715,7 +3739,7 @@ const COPY = {
   'session.openPage': 'Этот поток сейчас не открывается',
   'session.openService': 'Открыть страницу сервиса',
   'session.stalled': 'Поток подвисает',
-  'session.volume': 'Громкость',
+  'session.volume': 'Громкость фона',
   'session.status.own': 'Включаете сами — приложение считает время',
   'session.status.silence': 'Тишина. Таймер идёт',
   'session.status.external': 'Играет на странице сервиса',
@@ -5849,8 +5873,14 @@ function renderSession(options) {
   controls.push(nextBtn, finishBtn);
   root.appendChild(el('div', { class: 'session__controls' }, controls));
 
-  /* Громкость — только когда играем сами. */
-  if (source.play.kind === 'stream') {
+  /* Громкость — только когда играем сами и только на компьютере.
+     На телефоне есть кнопки сбоку; вторая ручка, которая на них
+     не реагирует, выглядит как поломка. Системную громкость
+     прочитать нельзя, такого API нет — поэтому убираем лишнее.
+     Стартовый уровень задаётся всё равно: «тихая громкость» из
+     рекомендации это реальное значение, а не подпись. */
+  const естьМышь = !window.matchMedia || window.matchMedia('(pointer: fine)').matches;
+  if (source.play.kind === 'stream' && естьМышь) {
     const slider = el('input', {
       class: 'volume__input',
       attrs: {
@@ -6704,18 +6734,26 @@ function renderTaskEntry() {
       attrs: { 'aria-pressed': state.today.entry === 'task' && state.today.taskId === task.id ? 'true' : 'false' }
     }));
   }
-  const plus = el('button', {
-    class: 'chip chip--icon',
-    type: 'button',
-    data: { action: 'profiles' },
-    attrs: { 'aria-label': COPY['today.profiles'] }
-  }, [icon('i-plus')]);
-  row.appendChild(plus);
-
-  return el('div', { class: 'entry' }, [
+  const children = [
     el('h2', { class: 'entry__title', text: COPY['today.byTask'] }),
     row
-  ]);
+  ];
+
+  /* Иконка без подписи людям ничего не говорила. Строка появляется,
+     пока человек не включил ни одного профиля сверх умолчаний:
+     столяр и монтажник иначе своих занятий не находят. */
+  const включено = (state.data.settings.profiles || []).slice().sort().join(',');
+  const поУмолчанию = PROFILES.filter(p => p.defaultOn).map(p => p.id).sort().join(',');
+  if (включено === поУмолчанию) {
+    children.push(el('button', {
+      class: 'btn btn--ghost entry__notfound',
+      type: 'button',
+      text: COPY['today.notFound'] + ' →',
+      data: { action: 'profiles' }
+    }));
+  }
+
+  return el('div', { class: 'entry' }, children);
 }
 
 /* Вход 3 — по музыке. Жанровые группы, последний элемент ведёт в каталог. */
@@ -7052,22 +7090,42 @@ function sourceCard(source) {
     card.appendChild(el('p', { class: 'source__note', text: COPY['youtube.trap'] }));
   }
 
-  /* У «Тишины» и «Своей музыки» страницы нет — кнопка «Открыть» скрыта. */
+  /* Действия карточки. Главное — включить прямо здесь: до этого
+     единственным действием было уйти на чужой сайт. */
+  const actions = [];
+
+  if (source.play && source.play.kind === 'stream') {
+    actions.push(el('button', {
+      class: 'btn btn--primary source__play',
+      type: 'button',
+      text: COPY['music.play'],
+      data: { action: 'play-source', source: source.id }
+    }));
+  }
+
+  /* У «Тишины» и «Своей музыки» страницы нет — ссылки не будет. */
   if (source.page) {
+    const внешний = !source.play || source.play.kind !== 'stream';
     const link = el('a', {
-      class: 'btn btn--secondary source__open',
-      text: COPY['music.open'],
+      class: внешний ? 'btn btn--primary source__open' : 'btn btn--ghost source__open',
+      text: внешний ? COPY['music.open'] : COPY['music.openSite'],
       attrs: { href: source.page, target: '_blank', rel: 'noopener noreferrer' }
     });
     link.appendChild(icon('i-external-link'));
-    card.appendChild(el('div', { class: 'source__actions' }, [link]));
+    actions.push(link);
   }
+
+  if (actions.length) card.appendChild(el('div', { class: 'source__actions' }, actions));
 
   return card;
 }
 
 function renderMusic() {
   const section = screenShell(COPY['nav.music']);
+
+  /* Что это вообще такое. «NTS · Beatless ambient» человеку из цеха
+     не говорит ничего. Постоянная строка, не подсказка с крестиком. */
+  section.appendChild(el('p', { class: 'music__intro', text: COPY['music.intro'] }));
 
   /* Строка перехода к режиму: 57 карточек листать неудобно. */
   const jump = el('div', { class: 'chips-row music__jump no-print' });
@@ -7459,6 +7517,29 @@ function genreMode(genre) {
     if ((counts[modeId] || 0) > (counts[best] || 0)) best = modeId;
   }
   return best;
+}
+
+/* «Включить» на карточке каталога: тот же подбор, сужённый до одного
+   источника. Режим берём первый из источника — так же, как вход через жанр. */
+function playSource(sourceId) {
+  const source = SOURCE_BY_ID[sourceId];
+  if (!source || !source.play || source.play.kind !== 'stream') return;
+  const modeId = (source.modes || []).filter(id => MODE_BY_ID[id])[0];
+  if (!modeId) return;
+
+  const rec = recommend({
+    entry: 'state',
+    modeId: modeId,
+    stateId: null,
+    energy: state.today.energy,
+    noise: state.today.noise,
+    intensity: state.today.intensity,
+    isPhone: isPhone(),
+    onlySourceIds: [sourceId],
+    history: state.data.sessions
+  });
+  if (!rec) return;
+  startFromSpec({ taskId: null, modeId: rec.modeId, sourceId: rec.sourceId, minutes: rec.minutes });
 }
 
 /* «Включить прямо сейчас»: обычный подбор, только сузили список источников
@@ -8989,6 +9070,7 @@ function handleAction(action, dataset) {
     case 'safety-silence':   startSafetySession('silence'); return;
     case 'safety-quiet':      startSafetySession('quiet'); return;
     case 'source-facts':     toggleSourceFacts(dataset.source); return;
+    case 'play-source':      playSource(dataset.source); return;
     case 'set-detail':       setDetail(dataset.value); return;
     case 'install':          runInstallPrompt(); return;
     case 'transfer':         showTransferPanel(); return;
