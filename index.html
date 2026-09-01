@@ -5964,7 +5964,9 @@ function updateTimerDisplay() {
   if (node) node.textContent = formatSessionTimeRemaining(sessionDisplayMs(), session);
 
   const mini = document.getElementById('miniTime');
-  if (mini) mini.textContent = formatClock(sessionDisplayMs());
+  /* На полосе те же минуты, что и на большом экране: посекундный тик
+     раньше перезаписывал их обратно в «34:55». */
+  if (mini) mini.textContent = formatSessionTimeRemaining(sessionDisplayMs(), session);
 
   checkRhythm();
 
