@@ -7214,7 +7214,14 @@ function toggleFavorite(sourceId) {
   if (index >= 0) state.data.favorites.splice(index, 1);
   else state.data.favorites.push(sourceId);
   saveState({ immediate: true });
-  renderScreen({ moveFocus: false });
+
+  /* Обновить только иконку избранного, не перерендеривая всю страницу. */
+  const buttons = document.querySelectorAll('[data-source="' + sourceId + '"][data-action="favorite"]');
+  for (const btn of buttons) {
+    const isFav = state.data.favorites.indexOf(sourceId) >= 0;
+    btn.setAttribute('aria-pressed', isFav ? 'true' : 'false');
+    btn.classList.toggle('favorite--active', isFav);
+  }
 }
 
 function sourceBadges(source) {
@@ -7468,27 +7475,19 @@ function renderMusicResults() {
       ]));
     }
     host.appendChild(jump);
-  }
 
-  /* Все источники (видны только без фильтра и поиска). */
-  if (!query.trim() && !filters.length) {
+    /* Раздел "Разобраться" и кнопка "Добавить" видны только без фильтра и поиска. */
     host.appendChild(renderDiscover());
 
-    const all = el('div', { class: 'cards' });
-    for (const source of SOURCES.concat(CANDIDATES)) all.appendChild(sourceCard(source));
-    all.appendChild(el('div', { class: 'own__add' }, [
+    const addButton = el('div', { class: 'own__add' }, [
       el('button', {
         class: 'btn btn--secondary',
         type: 'button',
         text: COPY['own.add'],
         data: { action: 'own-add' }
       })
-    ]));
-
-    host.appendChild(el('div', { class: 'section' }, [
-      el('h2', { class: 'section__title', text: COPY['music.all'] }),
-      all
-    ]));
+    ]);
+    host.appendChild(addButton);
   }
 }
 
