@@ -50,6 +50,7 @@
    Ни одного цвета мимо переменной.
    ============================================================ */
 :root {
+  /* Старые названия (остаются для совместимости) */
   --bg:            #F6F6F4;
   --surface:       #FFFFFF;
   --surface-2:     #EFEEEA;
@@ -58,6 +59,14 @@
   --text-3:        #6E6E73;
   --border:        #E3E1DC;
   --border-strong: #D3D0C9;
+
+  /* Новые названия */
+  --text-primary:   #1D1D1F;
+  --text-secondary: #5A5A5F;
+  --bg-elevated:    #FFFFFF;
+  --bg-hover:       #EFEEEA;
+  --bg-pressed:     rgba(0, 0, 0, 0.05);
+  --border-color:   #E3E1DC;
   --accent:        #7E6849;
   --accent-ink:    #62513A;
   --accent-wash:   #F1EBE1;
@@ -117,6 +126,14 @@
   --shadow-2:      0 8px 28px rgba(0,0,0,.5);
   --overlay:       rgba(0,0,0,.5);
   --danger:        #E08B80;
+
+  /* Новые названия */
+  --text-primary:   #F2F2F0;
+  --text-secondary: #A1A1A6;
+  --bg-elevated:    #1D1D1F;
+  --bg-hover:       #262628;
+  --bg-pressed:     rgba(255, 255, 255, 0.1);
+  --border-color:   #2E2E30;
 }
 
 /* ============================================================
@@ -127,7 +144,7 @@ html, body { height: 100%; }
 body {
   margin: 0;
   background: var(--bg);
-  color: var(--text);
+  color: var(--text-primary);
   font-family: var(--font);
   font-size: 15px;
   line-height: 1.6;
@@ -174,13 +191,13 @@ a { color: var(--accent-ink); }
   justify-content: space-between;
   gap: var(--sp-3);
   padding: var(--sp-2) var(--sp-4);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-color);
   background: var(--bg);
 }
 .topbar__title {
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-2);
+  color: var(--text-secondary);
   letter-spacing: .01em;
 }
 .topbar__actions { display: flex; align-items: center; gap: var(--sp-1); }
@@ -204,11 +221,11 @@ a { color: var(--accent-ink); }
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--r-btn);
-  color: var(--text-2);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
-.iconbtn:hover { background: var(--surface-2); color: var(--text); }
+.iconbtn:hover { background: var(--bg-hover); color: var(--text-primary); }
 .iconbtn:active { transform: scale(.985); }
 
 /* ============================================================
@@ -223,14 +240,14 @@ a { color: var(--accent-ink); }
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--r-btn);
-  color: var(--text-2);
+  color: var(--text-secondary);
   font-size: 15px;
   font-weight: 500;
   text-align: left;
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
-.nav__item:hover { background: var(--surface-2); color: var(--text); }
+.nav__item:hover { background: var(--bg-hover); color: var(--text-primary); }
 .nav__item[aria-current="page"] { background: var(--accent-wash); color: var(--accent-ink); }
 
 /* Мобильная нижняя навигация */
@@ -240,7 +257,7 @@ a { color: var(--accent-ink); }
   z-index: 30;
   display: flex;
   background: var(--bg);
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-color);
   padding-bottom: env(safe-area-inset-bottom);
 }
 .tabbar .nav__item {
@@ -269,7 +286,7 @@ a { color: var(--accent-ink); }
   .rail {
     display: flex;
     align-items: center;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--border-color);
   }
   .shell { flex-direction: column; }
   .railnav {
@@ -292,7 +309,7 @@ a { color: var(--accent-ink); }
     width: var(--rail-w);
     flex: none;
     padding: var(--sp-5) var(--sp-3);
-    border-right: 1px solid var(--border);
+    border-right: 1px solid var(--border-color);
     border-bottom: 0;
   }
   .railnav {
@@ -311,8 +328,8 @@ a { color: var(--accent-ink); }
 /* Неблокирующая строка-предупреждение под шапкой */
 .notice {
   padding: var(--sp-3) var(--sp-4);
-  background: var(--surface-2);
-  border-bottom: 1px solid var(--border);
+  background: var(--bg-hover);
+  border-bottom: 1px solid var(--border-color);
 }
 .update__row {
   display: flex;
@@ -328,7 +345,7 @@ a { color: var(--accent-ink); }
   margin: 0 auto;
   font-size: 14px;
   line-height: 1.55;
-  color: var(--text-2);
+  color: var(--text-secondary);
 }
 
 /* ============================================================
@@ -348,12 +365,11 @@ a { color: var(--accent-ink); }
 .screen__title:focus { outline: none; }
 .screen__title:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 
-/* Главный вопрос экрана «Сегодня» — крупнее и по центру */
+/* Главный вопрос экрана «Сегодня» — крупнее, по левому краю как остальные */
 .screen__question {
   font-size: clamp(24px, 4vw, 32px);
   line-height: 1.25;
   font-weight: 500;
-  text-align: center;
   margin: var(--sp-4) 0 var(--sp-6);
 }
 
@@ -364,10 +380,10 @@ a { color: var(--accent-ink); }
   font-weight: 600;
   margin-bottom: var(--sp-3);
 }
-.prose { font-size: 15px; line-height: 1.6; max-width: 68ch; color: var(--text); }
+.prose { font-size: 15px; line-height: 1.6; max-width: 68ch; color: var(--text-primary); }
 .prose + .prose { margin-top: var(--sp-3); }
-.muted { color: var(--text-2); }
-.small { font-size: 14px; line-height: 1.55; color: var(--text-2); }
+.muted { color: var(--text-secondary); }
+.small { font-size: 14px; line-height: 1.55; color: var(--text-secondary); }
 
 /* ============================================================
    БЛОК: ЭКРАН «СЕГОДНЯ»
@@ -390,8 +406,8 @@ a { color: var(--accent-ink); }
   width: 100%;
   min-height: 44px;
   padding: var(--sp-5) var(--sp-4);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: var(--r-card);
   text-align: left;
   cursor: pointer;
@@ -408,7 +424,7 @@ a { color: var(--accent-ink); }
 }
 .task__title { display: block; font-size: 17px; line-height: 1.4; font-weight: 600; }
 .task__sub { display: block; font-size: 13px; line-height: 1.4; color: var(--text-3); margin-top: 2px; }
-.task[aria-pressed="true"] .task__sub { color: var(--text-2); }
+.task[aria-pressed="true"] .task__sub { color: var(--text-secondary); }
 
 /* Готовые наборы */
 .starter { position: relative; margin-top: var(--sp-3); padding-right: 44px; }
@@ -427,9 +443,9 @@ a { color: var(--accent-ink); }
   min-height: 44px;
   padding: var(--sp-2) var(--sp-3);
   background: var(--bg);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-color);
   border-radius: var(--r-btn);
-  color: var(--text);
+  color: var(--text-primary);
   font: inherit;
   font-size: 15px;
 }
@@ -442,8 +458,8 @@ a { color: var(--accent-ink); }
   position: relative;
   padding: var(--sp-5);
   margin-bottom: var(--sp-5);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: var(--r-card);
 }
 .tomorrow__title { font-size: 15px; font-weight: 600; margin-bottom: var(--sp-2); }
@@ -451,20 +467,20 @@ a { color: var(--accent-ink); }
 .dayend { display: flex; justify-content: center; margin-top: var(--sp-6); }
 .dayend__body { text-align: left; }
 .dayend__note { margin-top: var(--sp-1); font-size: 15px; line-height: 1.5; }
-.dayend__label { margin: var(--sp-4) 0 var(--sp-2); font-size: 14px; color: var(--text-2); }
+.dayend__label { margin: var(--sp-4) 0 var(--sp-2); font-size: 14px; color: var(--text-secondary); }
 
 /* Карточка «Продолжить» — только когда есть незакрытая сессия */
 .resume {
   padding: var(--sp-5);
   margin-bottom: var(--sp-5);
-  background: var(--surface);
+  background: var(--bg-elevated);
   border: 1px solid var(--accent);
   border-radius: var(--r-card);
 }
 .resume__title { font-size: 17px; line-height: 1.4; font-weight: 600; }
 .resume__note { margin-top: var(--sp-2); font-size: 15px; line-height: 1.5; }
-.resume__label { margin-top: var(--sp-3); font-size: 13px; color: var(--text-2); }
-.resume__meta { margin-top: var(--sp-3); font-size: 14px; color: var(--text-2); }
+.resume__label { margin-top: var(--sp-3); font-size: 13px; color: var(--text-secondary); }
+.resume__meta { margin-top: var(--sp-3); font-size: 14px; color: var(--text-secondary); }
 .resume__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); margin-top: var(--sp-4); }
 
 /* Три входа на экране «Сегодня» */
@@ -478,13 +494,17 @@ a { color: var(--accent-ink); }
 @media (max-width: 339px) {
   .states { grid-template-columns: minmax(0, 1fr); }
 }
+/* Десктоп — три колонки для сетки 3 × 2. */
+@media (min-width: 768px) {
+  .states { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 .state {
   display: block;
   width: 100%;
   min-height: 44px;
   padding: var(--sp-5) var(--sp-4);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: var(--r-card);
   text-align: left;
   cursor: pointer;
@@ -496,13 +516,40 @@ a { color: var(--accent-ink); }
 .state:hover { border-color: var(--border-strong); box-shadow: var(--shadow-1); }
 .state:active { transform: scale(.985); }
 .state[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-wash); }
-.state--wide { grid-column: 1 / -1; }
 .state__title { display: block; font-size: 17px; line-height: 1.4; font-weight: 600; }
 .state__sub { display: block; margin-top: 2px; font-size: 13px; line-height: 1.4; color: var(--text-3); }
-.state[aria-pressed="true"] .state__sub { color: var(--text-2); }
+.state[aria-pressed="true"] .state__sub { color: var(--text-secondary); }
+
+/* Табы выбора раздела главного экрана. */
+.today-tabs {
+  display: flex;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-5);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: var(--sp-3);
+}
+.today-tab {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  min-height: 44px;
+  min-width: 44px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease);
+  white-space: nowrap;
+}
+.today-tab:hover { color: var(--text-primary); }
+.today-tab--active { color: var(--text-primary); }
+
+.today-content { }
+.today-block.hidden { display: none; }
 
 .entry { margin-bottom: var(--sp-6); }
-.entry__title { font-size: 15px; font-weight: 500; color: var(--text-2); margin-bottom: var(--sp-3); }
+.entry__title { font-size: 15px; font-weight: 500; color: var(--text-secondary); margin-bottom: var(--sp-3); }
 .entry.collapsed {
   display: flex;
   align-items: center;
@@ -576,24 +623,24 @@ a { color: var(--accent-ink); }
   padding: 0 18px;
   background: transparent;
   border-color: var(--border-strong);
-  color: var(--text);
+  color: var(--text-primary);
   font-size: 15px;
   font-weight: 500;
 }
-.btn--secondary:hover { background: var(--surface-2); }
+.btn--secondary:hover { background: var(--bg-hover); }
 
 .btn--ghost {
   min-height: 44px;
   padding: var(--sp-2) 0;
   background: transparent;
-  color: var(--text-2);
+  color: var(--text-secondary);
   font-size: 14px;
   font-weight: 500;
 }
-.btn--ghost:hover { color: var(--text); text-decoration: underline; }
+.btn--ghost:hover { color: var(--text-primary); text-decoration: underline; }
 
 .btn--danger { color: var(--danger); border-color: var(--border-strong); }
-.btn--danger:hover { background: var(--surface-2); }
+.btn--danger:hover { background: var(--bg-hover); }
 
 .chip {
   display: inline-flex;
@@ -602,9 +649,9 @@ a { color: var(--accent-ink); }
   min-height: 44px;
   padding: 0 14px;
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-color);
   border-radius: var(--r-chip);
-  color: var(--text-2);
+  color: var(--text-secondary);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -612,7 +659,7 @@ a { color: var(--accent-ink); }
               border-color var(--dur-fast) var(--ease),
               color var(--dur-fast) var(--ease);
 }
-.chip:hover { border-color: var(--border-strong); color: var(--text); }
+.chip:hover { border-color: var(--border-strong); color: var(--text-primary); }
 .chip[aria-pressed="true"] {
   background: var(--accent-wash);
   border-color: var(--accent);
@@ -622,15 +669,21 @@ a { color: var(--accent-ink); }
 .badge {
   display: inline-block;
   padding: 2px 6px;
-  background: var(--surface-2);
+  background: var(--bg-hover);
   border-radius: 6px;
   /* --text-2, а не --text-3: на плашке --surface-2 контраст должен
      проходить 4.5 : 1 (ответ архитектора по спринту 1). */
-  color: var(--text-2);
+  color: var(--text-secondary);
   font-size: 12px;
   line-height: 1.3;
   font-weight: 500;
   letter-spacing: .01em;
+}
+.badge--location {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  padding: 1px 5px;
 }
 .badges { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
 
@@ -653,8 +706,8 @@ a { color: var(--accent-ink); }
 
 .rec {
   padding: var(--sp-5);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: var(--r-card);
   box-shadow: var(--shadow-1);
   animation: rec-in var(--dur-slow) var(--ease);
@@ -664,11 +717,11 @@ a { color: var(--accent-ink); }
   to   { opacity: 1; transform: none; }
 }
 /* Лёгкая подложка цветом режима — единственное место, где он заливает фон */
-.rec--check   { background: color-mix(in srgb, var(--mode-check)   8%, var(--surface)); }
-.rec--draw    { background: color-mix(in srgb, var(--mode-draw)    8%, var(--surface)); }
-.rec--flow    { background: color-mix(in srgb, var(--mode-flow)    8%, var(--surface)); }
-.rec--create  { background: color-mix(in srgb, var(--mode-create)  8%, var(--surface)); }
-.rec--routine { background: color-mix(in srgb, var(--mode-routine) 8%, var(--surface)); }
+.rec--check   { background: color-mix(in srgb, var(--mode-check)   8%, var(--bg-elevated)); }
+.rec--draw    { background: color-mix(in srgb, var(--mode-draw)    8%, var(--bg-elevated)); }
+.rec--flow    { background: color-mix(in srgb, var(--mode-flow)    8%, var(--bg-elevated)); }
+.rec--create  { background: color-mix(in srgb, var(--mode-create)  8%, var(--bg-elevated)); }
+.rec--routine { background: color-mix(in srgb, var(--mode-routine) 8%, var(--bg-elevated)); }
 
 .rec__head {
   display: flex;
@@ -676,11 +729,11 @@ a { color: var(--accent-ink); }
   gap: var(--sp-2);
 }
 .rec__mode { font-size: 17px; line-height: 1.4; font-weight: 600; }
-.rec__subtitle { font-size: 14px; line-height: 1.55; color: var(--text-2); margin-top: var(--sp-1); }
+.rec__subtitle { font-size: 14px; line-height: 1.55; color: var(--text-secondary); margin-top: var(--sp-1); }
 .rec__source { font-size: 17px; line-height: 1.4; font-weight: 600; margin-top: var(--sp-5); }
-.rec__genre { font-size: 14px; line-height: 1.55; color: var(--text-2); }
-.rec__meta { font-size: 14px; line-height: 1.55; color: var(--text-2); margin-top: var(--sp-4); }
-.rec__hint { font-size: 14px; line-height: 1.55; color: var(--text-2); margin-top: var(--sp-3); max-width: 68ch; }
+.rec__genre { font-size: 14px; line-height: 1.55; color: var(--text-secondary); }
+.rec__meta { font-size: 14px; line-height: 1.55; color: var(--text-secondary); margin-top: var(--sp-4); }
+.rec__hint { font-size: 14px; line-height: 1.55; color: var(--text-secondary); margin-top: var(--sp-3); max-width: 68ch; }
 .rec__actions { display: flex; justify-content: center; margin-top: var(--sp-5); }
 .rec__links {
   display: flex;
@@ -695,29 +748,29 @@ a { color: var(--accent-ink); }
 .panel {
   margin-top: var(--sp-4);
   padding: var(--sp-4);
-  background: var(--surface-2);
+  background: var(--bg-hover);
   border-radius: var(--r-btn);
 }
-.panel__text { font-size: 14px; line-height: 1.6; color: var(--text); max-width: 68ch; }
+.panel__text { font-size: 14px; line-height: 1.6; color: var(--text-primary); max-width: 68ch; }
 .panel__text--task { margin-top: var(--sp-3); }
 .panel__criterion {
   margin-top: var(--sp-3);
   font-size: 14px;
   line-height: 1.6;
   font-style: italic;
-  color: var(--text-2);
+  color: var(--text-secondary);
   max-width: 68ch;
 }
 
 /* Карточка безопасности: тот же вид, что у рекомендации, без цвета режима */
-.safety { background: var(--surface); }
-.safety__text { margin-top: var(--sp-3); font-size: 15px; line-height: 1.6; color: var(--text); max-width: 68ch; }
+.safety { background: var(--bg-elevated); }
+.safety__text { margin-top: var(--sp-3); font-size: 15px; line-height: 1.6; color: var(--text-primary); max-width: 68ch; }
 .safety__hint { margin-top: var(--sp-3); font-size: 13px; line-height: 1.5; color: var(--text-3); }
 .panel__link { margin-top: var(--sp-3); }
 
 .tune__row { margin-top: var(--sp-4); }
 .tune__row:first-child { margin-top: 0; }
-.tune__label { font-size: 14px; font-weight: 500; color: var(--text-2); margin-bottom: var(--sp-2); }
+.tune__label { font-size: 14px; font-weight: 500; color: var(--text-secondary); margin-bottom: var(--sp-2); }
 .tune__chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 
 .pick { display: flex; flex-direction: column; gap: var(--sp-2); }
@@ -735,8 +788,8 @@ a { color: var(--accent-ink); }
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
-.pick__item:hover { background: var(--surface); }
-.pick__item[aria-pressed="true"] { border-color: var(--accent); background: var(--surface); }
+.pick__item:hover { background: var(--bg-elevated); }
+.pick__item[aria-pressed="true"] { border-color: var(--accent); background: var(--bg-elevated); }
 .pick__title { font-size: 15px; font-weight: 500; }
 .pick__genre { font-size: 13px; color: var(--text-3); }
 
@@ -765,7 +818,7 @@ a { color: var(--accent-ink); }
   gap: var(--sp-2);
   font-size: 14px;
   font-weight: 500;
-  color: var(--text);
+  color: var(--text-primary);
 }
 
 .session__timer {
@@ -786,12 +839,12 @@ a { color: var(--accent-ink); }
 .session__source {
   font-size: 24px;
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-primary);
   margin: var(--sp-3) 0;
 }
 
-.session__genre { font-size: 14px; color: var(--text-2); }
-.session__hints { font-size: 14px; color: var(--text-2); }
+.session__genre { font-size: 14px; color: var(--text-secondary); }
+.session__hints { font-size: 14px; color: var(--text-secondary); }
 
 .session__controls {
   display: flex;
@@ -806,7 +859,7 @@ a { color: var(--accent-ink); }
 .session--idle .session__dim { opacity: .35; }
 .session--idle .session__status-row { opacity: 1; }
 
-.session__notice { font-size: 14px; color: var(--text-2); min-height: 1.55em; }
+.session__notice { font-size: 14px; color: var(--text-secondary); min-height: 1.55em; }
 .session__status {
   font-size: 17px;
   font-weight: 500;
@@ -849,15 +902,15 @@ a { color: var(--accent-ink); }
   align-items: center;
   gap: var(--sp-3);
   padding: var(--sp-4);
-  background: var(--surface-2);
-  border-top: 1px solid var(--border);
+  background: var(--bg-hover);
+  border-top: 1px solid var(--border-color);
 }
-.rhythm__text { font-size: 14px; line-height: 1.5; color: var(--text); text-align: center; }
+.rhythm__text { font-size: 14px; line-height: 1.5; color: var(--text-primary); text-align: center; }
 .rhythm__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-2); }
 
 /* Регулятор громкости */
 .volume { display: flex; align-items: center; gap: var(--sp-3); }
-.volume__label { font-size: 14px; color: var(--text-2); }
+.volume__label { font-size: 14px; color: var(--text-secondary); }
 .volume__input { width: 180px; max-width: 60vw; accent-color: var(--accent); height: 44px; }
 
 /* Строка «Не нашли своё занятие?» и вводная в «Музыке» */
@@ -865,14 +918,14 @@ a { color: var(--accent-ink); }
   display: block;
   margin-top: var(--sp-3);
   min-height: 44px;
-  color: var(--text-2);
+  color: var(--text-secondary);
   font-size: 14px;
   text-align: left;
   padding-left: 0;
 }
 .music__intro {
   margin: 0 0 var(--sp-5);
-  color: var(--text-2);
+  color: var(--text-secondary);
   font-size: 14px;
   line-height: 1.5;
   max-width: 60ch;
@@ -888,9 +941,9 @@ a { color: var(--accent-ink); }
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--border-color);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -910,7 +963,7 @@ a { color: var(--accent-ink); }
 }
 
 .scroll-to-top:hover {
-  background: var(--surface-2);
+  background: var(--bg-hover);
 }
 
 .scroll-to-top:focus-visible {
@@ -951,13 +1004,13 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
   width: 100%;
   max-width: 380px;
   padding: var(--sp-5);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: var(--r-card);
   box-shadow: var(--shadow-2);
 }
 .dialog__title { font-size: 17px; line-height: 1.4; font-weight: 600; }
-.dialog__text { margin-top: var(--sp-2); font-size: 14px; line-height: 1.55; color: var(--text-2); }
+.dialog__text { margin-top: var(--sp-2); font-size: 14px; line-height: 1.55; color: var(--text-secondary); }
 .dialog__actions {
   display: flex;
   flex-wrap: wrap;
@@ -1027,8 +1080,8 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
   min-width: 104px;
   min-height: 44px;
   padding: var(--sp-4);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: var(--r-card);
   cursor: pointer;
   transition: border-color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease);
@@ -1038,7 +1091,7 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
 .rating__face { font-size: 22px; line-height: 1.2; }
 .rating__label { font-size: 14px; font-weight: 500; }
 .result__errors { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--sp-2); }
-.result__errors-label { font-size: 14px; color: var(--text-2); }
+.result__errors-label { font-size: 14px; color: var(--text-secondary); }
 .result__footer { display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); }
 
 /* ============================================================
@@ -1054,8 +1107,8 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
   align-items: center;
   gap: var(--sp-3);
   padding: var(--sp-2) var(--sp-4);
-  background: var(--surface);
-  border-top: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border-color);
 }
 .mini__open {
   display: flex;
@@ -1066,13 +1119,13 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
   padding: 0;
   background: transparent;
   border: 0;
-  color: var(--text);
+  color: var(--text-primary);
   font-size: 15px;
   font-weight: 500;
   text-align: left;
   cursor: pointer;
 }
-.mini__time { font-variant-numeric: tabular-nums; color: var(--text-2); }
+.mini__time { font-variant-numeric: tabular-nums; color: var(--text-secondary); }
 .mini__eq { display: flex; align-items: center; width: 16px; height: 12px; flex-shrink: 0; }
 
 @media (min-width: 768px) {
@@ -1091,14 +1144,14 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
 
 .source {
   padding: var(--sp-4) var(--sp-5);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: var(--r-card);
 }
 .source__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3); }
 .source__title { font-size: 17px; line-height: 1.4; font-weight: 600; }
-.source__meta { font-size: 14px; line-height: 1.55; color: var(--text-2); }
-.source__desc { margin-top: var(--sp-2); font-size: 14px; line-height: 1.6; color: var(--text); max-width: 68ch; }
+.source__meta { font-size: 14px; line-height: 1.55; color: var(--text-secondary); }
+.source__desc { margin-top: var(--sp-2); font-size: 14px; line-height: 1.6; color: var(--text-primary); max-width: 68ch; }
 .source__note { margin-top: var(--sp-3); font-size: 12px; line-height: 1.5; color: var(--text-3); max-width: 68ch; }
 .source__actions { margin-top: var(--sp-4); }
 /* Иконки смысла: 20 px по умолчанию, 24 px на карточках состояний.
@@ -1131,7 +1184,7 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
 .music__jump { margin-bottom: var(--sp-4); }
 
 /* Раздел «Ещё» — оглавление и подэкраны */
-.more__group { background: var(--surface-2); border-radius: var(--r-card); margin-bottom: var(--sp-5); overflow: hidden; }
+.more__group { background: var(--bg-hover); border-radius: var(--r-card); margin-bottom: var(--sp-5); overflow: hidden; }
 .more__caption { font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; padding: 8px 16px 0; }
 .more__list { display: flex; flex-direction: column; }
 .more__row {
@@ -1140,7 +1193,7 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
   position: relative; transition: background-color var(--dur-fast) var(--ease);
 }
 .more__row:hover { background: rgba(0,0,0,.02); }
-.more__row + .more__row::before { content: ''; position: absolute; left: 16px; right: 0; top: 0; height: 1px; background: var(--border); }
+.more__row + .more__row::before { content: ''; position: absolute; left: 16px; right: 0; top: 0; height: 1px; background: var(--border-color); }
 .more__row--danger { color: #E08B80; }
 .more__row--danger:hover { background: rgba(224, 139, 128, .1); }
 .more__row--checked { background: rgba(126, 104, 73, .05); }
@@ -1150,8 +1203,8 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
 .more__slider { flex: 1; }
 .more__slider-value { font-size: 13px; color: var(--text-3); min-width: 40px; text-align: right; }
 .more__subheader { font-size: 15px; font-weight: 600; margin-top: var(--sp-4); margin-bottom: var(--sp-2); }
-.more__title { flex: 1; font-size: 15px; }
-.more__value { color: var(--text-3); font-size: 14px; }
+.more__title { flex: 1; font-size: 15px; min-width: 0; word-break: break-word; }
+.more__value { color: var(--text-3); font-size: 14px; text-align: right; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; }
 .more__chevron { color: var(--text-3); font-size: 16px; }
 .more__back { margin-bottom: var(--sp-3); }
 .more__title-screen { font-size: 22px; font-weight: 600; margin-bottom: var(--sp-5); }
@@ -1162,7 +1215,7 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
 .more__container { display: grid; grid-template-columns: 1fr; gap: 0; }
 @media (min-width: 1024px) {
   .more__container { grid-template-columns: 280px 1fr; gap: var(--sp-5); padding: var(--sp-5); }
-  .more__index { overflow-y: auto; max-height: calc(100vh - 120px); }
+  .more__index { /* прокрутка одна — страничная, не вложенная */ }
   .more__panel { padding: 0; }
   .more__back { display: none; }
 }
@@ -1179,8 +1232,8 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
   .tiles { grid-template-columns: minmax(0, 1fr); }
 }
 .tile {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: var(--r-card);
   overflow: hidden;
 }
@@ -1196,14 +1249,14 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
   cursor: pointer;
 }
 .tile__title { display: block; font-weight: 500; }
-.tile__tagline { display: block; margin-top: 2px; font-size: 14px; color: var(--text-2); }
+.tile__tagline { display: block; margin-top: 2px; font-size: 14px; color: var(--text-secondary); }
 .tile__body { padding: 0 var(--sp-4) var(--sp-4); }
-.prose--vs { color: var(--text-2); }
+.prose--vs { color: var(--text-secondary); }
 .tile__actions { margin-top: var(--sp-3); }
 
 .genre__back { margin-bottom: var(--sp-3); }
 .genre__title { font-size: 22px; font-weight: 500; margin-bottom: var(--sp-1); }
-.genre__tagline { color: var(--text-2); margin-bottom: var(--sp-4); }
+.genre__tagline { color: var(--text-secondary); margin-bottom: var(--sp-4); }
 .genre__label {
   margin-top: var(--sp-5);
   margin-bottom: var(--sp-2);
@@ -1224,8 +1277,8 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
 .cal__day {
   margin-top: var(--sp-4);
   padding: var(--sp-4);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: var(--r-card);
 }
 .cal__dayTitle { font-weight: 500; margin-bottom: var(--sp-2); }
@@ -1238,13 +1291,13 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
   .extra__row { grid-template-columns: minmax(0, 1fr); gap: 2px; }
 }
 .extra__key { font-weight: 500; }
-.extra__value { color: var(--text-2); }
+.extra__value { color: var(--text-secondary); }
 
 .artists { display: grid; gap: var(--sp-3); }
 .artist {
   padding: var(--sp-4);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: var(--r-card);
 }
 .artist__head { display: flex; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-2); }
@@ -1256,8 +1309,8 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
   height: 36px;
   flex: 0 0 36px;
   border-radius: 50%;
-  background: var(--surface-2);
-  color: var(--text-2);
+  background: var(--bg-hover);
+  color: var(--text-secondary);
   font-size: 13px;
   letter-spacing: 0.02em;
 }
@@ -1276,7 +1329,7 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
 /* QR печатается чёрным по белому в любой теме: иначе камера его не прочтёт. */
 .transfer__code { background: #FFFFFF; padding: var(--sp-3); border-radius: var(--r-btn); }
 .facts__key { color: var(--text-3); }
-.facts__value { margin: 0; color: var(--text-2); }
+.facts__value { margin: 0; color: var(--text-secondary); }
 .source__open { text-decoration: none; }
 .iconbtn--on { color: var(--accent); }
 
@@ -1288,8 +1341,8 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
   width: 100%;
   min-height: 44px;
   padding: var(--sp-3) var(--sp-4);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: var(--r-card);
   text-align: left;
   cursor: pointer;
@@ -1297,9 +1350,9 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
 }
 .row:hover { border-color: var(--border-strong); }
 .row--static { cursor: default; }
-.row--static:hover { border-color: var(--border); }
+.row--static:hover { border-color: var(--border-color); }
 .row__title { font-size: 15px; line-height: 1.5; }
-.row__meta { font-size: 14px; color: var(--text-2); white-space: nowrap; }
+.row__meta { font-size: 14px; color: var(--text-secondary); white-space: nowrap; }
 .row__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .row__note { font-size: 13px; line-height: 1.4; color: var(--text-3); }
 .restart { display: flex; justify-content: center; margin-bottom: var(--sp-4); }
@@ -1307,8 +1360,8 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
 .memo__wrap { overflow-x: auto; }
 .memo { border-collapse: collapse; font-size: 14px; line-height: 1.5; }
 .memo th, .memo td { padding: var(--sp-2) var(--sp-3); text-align: left; vertical-align: top; }
-.memo th { font-weight: 600; color: var(--text-2); border-bottom: 1px solid var(--border); }
-.memo td { border-bottom: 1px solid var(--border); }
+.memo th { font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); }
+.memo td { border-bottom: 1px solid var(--border-color); }
 .memo tr:last-child td { border-bottom: 0; }
 
 .list { display: flex; flex-direction: column; gap: var(--sp-2); }
@@ -1648,7 +1701,7 @@ const CONFIG = {
   channelName: 'fon-tabs',   /* канал, через который вкладки договариваются */
   pingKey: 'mfp.ping',       /* откат на событие storage */
   stallNoticeMs: 10000,      /* сколько ждём подвисший поток, прежде чем сказать */
-  connectTimeoutMs: 12000,   /* таймут на подключение к потоку, прежде чем пробовать следующий адрес */
+  connectTimeoutMs: 5000,   /* таймут на подключение к потоку, прежде чем пробовать следующий адрес */
   historyWindow: 20,         /* сколько последних сессий смотрит движок */
   recentLimit: 10            /* сколько сессий показываем в «Последнем» */
 };
@@ -3504,12 +3557,13 @@ function hasWords(source) {
 const COPY = {
   'app.title': 'Фон',
   'app.subtitle': 'Звуковая среда под то, что вы делаете',
-  'nav.today': 'Сегодня',
+  'nav.today': 'Сейчас',
   'nav.music': 'Музыка',
   'nav.mine': 'Моё',
   'nav.more': 'Ещё',
 
   'today.question': 'Что включить?',
+  'today.state': 'Состояние',
   'today.byTask': 'По занятию',
   'today.byMusic': 'Знаете, что хотите слушать?',
   'today.moreMusic': 'Ещё',
@@ -3682,6 +3736,8 @@ const COPY = {
   'date.today': 'Сегодня',
   'why.more': 'Подробнее об исследованиях →',
   'safety.speaker': 'Колонка, не наушники.',
+  'badge.playsHere': 'Играет здесь',
+  'badge.siteOnly': 'Только на сайте',
   'badge.noVocals': 'без вокала',
   'badge.ads': 'есть реклама',
   'badge.auth': 'нужна регистрация',
@@ -3737,6 +3793,7 @@ const COPY = {
   'resume.finish': 'Завершить',
   'session.openHint': 'Источник открыт в новой вкладке.',
   'session.openPage': 'Этот поток сейчас не открывается',
+  'session.streamDead': 'Поток не отвечает. Можно открыть на сайте',
   'session.openService': 'Открыть страницу сервиса',
   'session.stalled': 'Поток подвисает',
   'session.volume': 'Громкость фона',
@@ -3744,6 +3801,7 @@ const COPY = {
   'session.status.silence': 'Тишина. Таймер идёт',
   'session.status.external': 'Играет на странице сервиса',
   'session.status.connecting': 'Подключаюсь…',
+  'session.status.switching': 'Не отвечает, беру следующую',
   'session.status.playing': 'Играет',
   'session.status.paused': 'На паузе',
   'session.status.pausedOwn': 'Пауза. Таймер остановлен',
@@ -4130,7 +4188,7 @@ const state = {
     rec: null               /* последняя посчитанная рекомендация */
   },
 
-  ui: { startersOpen: false, musicQuery: '', openGenre: null, openTile: null, moreView: null },
+  ui: { startersOpen: false, musicQuery: '', openGenre: null, openTile: null, moreView: null, musicFilters: [] },
                             /* мелкое состояние, не переживает перезагрузку */
   scrollMemory: {},         /* памятьпрокрутки: ключ экрана → позиция прокрутки */
   updateWaiting: null,      /* новый сервис-воркер ждёт очереди */
@@ -4157,7 +4215,7 @@ const player = {
   urlIndex: 0,
   stallTimer: null,
   connectTimer: null,    /* таймер подключения к потоку */
-  listeners: { playing: [], error: [], stalled: [] },
+  listeners: { playing: [], error: [], stalled: [], sourceDead: [] },
 
   on(event, handler) {
     if (this.listeners[event]) this.listeners[event].push(handler);
@@ -4217,13 +4275,14 @@ const player = {
     if (this.connectTimer) { clearTimeout(this.connectTimer); this.connectTimer = null; }
   },
 
-  /* Молча пробуем запасные адреса; кончились — говорим честно. */
+  /* Молча пробуем один запасной адрес той же станции; не помог —
+     сообщаем наверх, чтобы перейти к следующему источнику в цепочке. */
   tryNextUrl() {
     this.urlIndex++;
     if (this.urlIndex >= this.urls.length) {
       this.clearStallTimer();
       this.clearConnectTimer();
-      this.emit('error', this.source);
+      this.emit('sourceDead', this.source);
       return;
     }
     const audio = this.ensureAudio();
@@ -4246,7 +4305,9 @@ const player = {
     }
     if (source.play.kind !== 'stream' || !source.play.url) return 'none';
 
-    this.urls = [source.play.url].concat(streamFallbacks(source.play.url));
+    /* Только один запасной адрес той же станции: второй неответ
+       переключает не адрес, а весь источник (см. tryNextUrl). */
+    this.urls = [source.play.url].concat(streamFallbacks(source.play.url).slice(0, 1));
     this.urlIndex = 0;
 
     const audio = this.ensureAudio();
@@ -5523,6 +5584,8 @@ function trapDialogFocus(event) {
    ============================================================ */
 let tickTimer = null;
 let idleTimer = null;
+let sessionAutoCloseTimer = null;
+const SESSION_MAX_DURATION_MS = 4 * 60 * 60 * 1000;
 
 /* Сколько миллисекунд реально отработано. Считается от Date.now(),
    а не накоплением тиков: свернул вкладку — время осталось верным. */
@@ -5563,6 +5626,15 @@ function pluralMinutes(n) {
   return 'минут';
 }
 
+function formatSessionDuration(minutes) {
+  if (minutes > 720) return 'длительность неизвестна';
+  if (minutes < 60) return minutes + ' мин';
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  if (mins === 0) return hours + ' ч';
+  return hours + ' ч ' + mins + ' мин';
+}
+
 function formatClockMinutesOnly(ms) {
   const total = Math.floor(ms / 1000);
   const minutes = Math.floor(total / 60);
@@ -5594,6 +5666,24 @@ function formatSessionTimeRemaining(ms, session) {
   return remainingWord + ' ' + minutes + ' ' + pluralMinutes(minutes);
 }
 
+/* Запуск таймера автоматического закрытия сессии через 4 часа. */
+function startSessionAutoCloseTimer() {
+  if (sessionAutoCloseTimer) clearTimeout(sessionAutoCloseTimer);
+  sessionAutoCloseTimer = setTimeout(function () {
+    if (state.session) {
+      finishSession({ autoClose: true });
+    }
+  }, SESSION_MAX_DURATION_MS);
+}
+
+/* Остановка таймера автоматического закрытия. */
+function stopSessionAutoCloseTimer() {
+  if (sessionAutoCloseTimer) {
+    clearTimeout(sessionAutoCloseTimer);
+    sessionAutoCloseTimer = null;
+  }
+}
+
 /* Включение источника и подпись под таймером о том, что происходит. */
 function startPlayback(source) {
   if (!state.session) return;
@@ -5606,6 +5696,12 @@ function startPlayback(source) {
 /* Старт сессии: открываем источник в новой вкладке и уходим в Focus UI. */
 function startSession(options) {
   const opts = options || {};
+
+  /* Закрыть предыдущую сессию, если она осталась открытой. */
+  if (state.session) {
+    finishSession({ autoClose: true });
+  }
+
   const rec = opts.rec || state.today.rec || currentRecommendation();
   if (!rec) return;
   /* Сессия началась — прокрутка главного экрана больше не нужна. */
@@ -5654,6 +5750,7 @@ function startSession(options) {
   renderUpdateBar();
   tabs.announce('session-started');
   persistActiveSession();
+  startSessionAutoCloseTimer();
   location.hash = '#session';
 }
 
@@ -6023,6 +6120,7 @@ function nextSource() {
   session.switched = true;
   session.fallbackExternal = false;
   session.isPlaying = false;
+  session.autoSwitchAttempts = 0;
   startPlayback(SOURCE_BY_ID[nextId]);
   persistActiveSession();
   updateMediaSession();
@@ -6045,6 +6143,7 @@ function showCorrection() {
       session.modeId = targetModeId;
       session.sourceId = CHAINS[targetModeId][0];
       session.switched = true;
+      session.autoSwitchAttempts = 0;
       startPlayback(SOURCE_BY_ID[session.sourceId]);
       persistActiveSession();
       updateMediaSession();
@@ -6063,6 +6162,7 @@ function showCorrection() {
     apply = function () {
       session.sourceId = calmest;
       session.switched = true;
+      session.autoSwitchAttempts = 0;
       startPlayback(SOURCE_BY_ID[calmest]);
       persistActiveSession();
       updateMediaSession();
@@ -6114,6 +6214,7 @@ function finishSession(options) {
   updateMediaSession();
   saveState({ immediate: true });
   stopTick();
+  stopSessionAutoCloseTimer();
 
   /* Оценку пропустили три раза — экран итога больше не появляется,
      сессия просто закрывается (09-TONE §3). */
@@ -6202,6 +6303,7 @@ function bindPlayerEvents() {
     if (!state.session) return;
     state.session.notice = '';
     state.session.isPlaying = true;
+    state.session.autoSwitchAttempts = 0;
     updateSessionNotice();
     updateSessionStatus();
   });
@@ -6211,18 +6313,51 @@ function bindPlayerEvents() {
     state.session.notice = COPY['session.stalled'];
     updateSessionNotice();
   });
-  player.on('error', function () {
-    if (!state.session) return;
-    state.session.isPlaying = false;
-    /* Все адреса перепробованы. Не сообщаем о неудаче — предлагаем
-       открыть страницу сервиса и до конца сессии считаем источник внешним. */
-    state.session.fallbackExternal = true;
-    const failed = SOURCE_BY_ID[state.session.sourceId];
-    /* У своего источника формулировка другая: это его ссылка, и её
-       можно переключить на «открывать ссылку» навсегда. */
-    state.session.notice = failed && failed.status === 'own'
-      ? COPY['own.notPlayable']
-      : COPY['session.openPage'];
+  /* Адреса текущего источника кончились. Пока в цепочке режима есть
+     непроверенные источники — переходим к следующему сами, не спрашивая.
+     Когда цепочка пройдена целиком — как раньше: предложение открыть
+     страницу сервиса. */
+  player.on('sourceDead', function () {
+    const session = state.session;
+    if (!session) return;
+    const sessionId = session.id;
+    const chain = chainFor(session.modeId);
+    const currentIndex = chain.indexOf(session.sourceId);
+    const attempts = session.autoSwitchAttempts || 0;
+
+    if (currentIndex >= 0 && chain.length > 1 && attempts < chain.length - 1) {
+      const nextId = chain[(currentIndex + 1) % chain.length];
+      session.autoSwitchAttempts = attempts + 1;
+      session.isPlaying = false;
+      session.notice = COPY['session.status.switching'];
+      updateSessionNotice();
+
+      setTimeout(function () {
+        /* За время паузы могли завершить сессию или начать другую. */
+        if (!state.session || state.session.id !== sessionId) return;
+        state.session.sourceId = nextId;
+        state.session.switched = true;
+        startPlayback(SOURCE_BY_ID[nextId]);
+        persistActiveSession();
+        updateMediaSession();
+        renderSession();
+      }, 700);
+      return;
+    }
+
+    session.isPlaying = false;
+    /* Вся цепочка перепробована. */
+    session.fallbackExternal = true;
+    const failed = SOURCE_BY_ID[session.sourceId];
+    /* Формулировка сообщения зависит от типа источника. */
+    if (failed && failed.status === 'own') {
+      session.notice = COPY['own.notPlayable'];
+    } else if (failed && failed.play.kind === 'stream') {
+      /* Поток был в приложении, но перестал отвечать целиком. */
+      session.notice = COPY['session.streamDead'];
+    } else {
+      session.notice = COPY['session.openPage'];
+    }
     renderSession();
   });
 }
@@ -6425,7 +6560,7 @@ function renderResult(options) {
 
   root.appendChild(el('p', {
     class: 'result__duration',
-    text: record.actualMinutes + ' ' + pluralRu(record.actualMinutes, ['минута', 'минуты', 'минут'])
+    text: formatSessionDuration(record.actualMinutes)
   }));
 
   root.appendChild(el('p', { class: 'result__question', text: COPY['result.question'] }));
@@ -6706,9 +6841,9 @@ function renderCollapsedEntry() {
 
 function renderStateEntry() {
   const grid = el('div', { class: 'states' });
-  STATES.forEach(function (item, index) {
+  STATES.forEach(function (item) {
     const card = el('button', {
-      class: 'state' + (index === 0 ? ' state--wide' : ''),
+      class: 'state',
       type: 'button',
       data: { entry: 'state', value: item.id },
       attrs: { 'aria-pressed': state.today.entry === 'state' && state.today.stateId === item.id ? 'true' : 'false' }
@@ -6825,9 +6960,40 @@ function renderToday() {
     const collapsed = renderCollapsedEntry();
     if (collapsed) section.appendChild(collapsed);
   } else {
-    section.appendChild(renderStateEntry());
-    section.appendChild(renderTaskEntry());
-    section.appendChild(renderGenreEntry());
+    /* Табы для выбора раздела: Состояние · Занятие · Музыка */
+    const tabs = el('div', { class: 'today-tabs' });
+    const tabLabels = [
+      { id: 'state', label: COPY['today.state'] },
+      { id: 'task', label: COPY['today.byTask'] },
+      { id: 'genre', label: COPY['today.byMusic'] }
+    ];
+
+    for (const tab of tabLabels) {
+      const btn = el('button', {
+        class: 'today-tab' + (todayTabSelected === tab.id ? ' today-tab--active' : ''),
+        type: 'button',
+        data: { 'today-tab': tab.id },
+        text: tab.label
+      });
+      tabs.appendChild(btn);
+    }
+    section.appendChild(tabs);
+
+    /* Контейнер для контента вкладок. Показываем все, но прячем неактивные. */
+    const content = el('div', { class: 'today-content' });
+    const stateBlock = el('div', { class: 'today-block' + (todayTabSelected === 'state' ? '' : ' hidden') });
+    stateBlock.appendChild(renderStateEntry());
+    content.appendChild(stateBlock);
+
+    const taskBlock = el('div', { class: 'today-block' + (todayTabSelected === 'task' ? '' : ' hidden') });
+    taskBlock.appendChild(renderTaskEntry());
+    content.appendChild(taskBlock);
+
+    const genreBlock = el('div', { class: 'today-block' + (todayTabSelected === 'genre' ? '' : ' hidden') });
+    genreBlock.appendChild(renderGenreEntry());
+    content.appendChild(genreBlock);
+
+    section.appendChild(content);
   }
 
   /* Место под карточку рекомендации: входы остаются на месте,
@@ -6974,6 +7140,14 @@ function selectEntry(entry, value) {
   }
 }
 
+/* Переключение видимой вкладки на главном экране (Состояние / Занятие / Музыка).
+   Не меняет выбранный "вход" для рекомендации, только видимость. */
+function switchTodayTab(tabId) {
+  if (todayTabSelected === tabId) return;
+  todayTabSelected = tabId;
+  renderScreen({ moveFocus: false });
+}
+
 /* Панель выбора профилей. */
 function showProfilesPanel() {
   const list = el('div', { class: 'pick' });
@@ -7017,9 +7191,19 @@ function toggleProfile(profileId) {
   if (state.screen === 'today') renderScreen({ moveFocus: false });
 }
 
+/* Переключение фильтра в каталоге музыки. */
+function toggleMusicFilter(filterId) {
+  const filters = state.ui.musicFilters || [];
+  const index = filters.indexOf(filterId);
+  if (index >= 0) filters.splice(index, 1);
+  else filters.push(filterId);
+  state.ui.musicFilters = filters;
+  renderMusicResults();
+}
+
 /* ============================================================
    БЛОК: РАЗДЕЛ «МУЗЫКА»
-   Список всех источников по режимам. Поиск и фильтры — не в этом спринте.
+   Один список источников с фильтрами.
    ============================================================ */
 function isFavorite(sourceId) {
   return state.data.favorites.indexOf(sourceId) >= 0;
@@ -7035,6 +7219,12 @@ function toggleFavorite(sourceId) {
 
 function sourceBadges(source) {
   const badges = el('div', { class: 'badges' });
+  /* Плашка места: где именно заиграет звук. Первой в ряду для наглядности. */
+  if (source.id !== 'silence' && source.id !== 'own') {
+    const locationBadge = el('span', { class: 'badge badge--location' });
+    locationBadge.textContent = source.play.kind === 'stream' ? COPY['badge.playsHere'] : COPY['badge.siteOnly'];
+    badges.appendChild(locationBadge);
+  }
   if (!hasWords(source)) badges.appendChild(el('span', { class: 'badge', text: COPY['badge.noVocals'] }));
   if (source.masksSpeech) badges.appendChild(el('span', { class: 'badge', text: COPY['badge.masks'] }));
   if (source.flags.indexOf('ads') >= 0) badges.appendChild(el('span', { class: 'badge', text: COPY['badge.ads'] }));
@@ -7175,19 +7365,67 @@ function matchesQuery(source, query) {
     .some(value => String(value).toLowerCase().indexOf(needle) >= 0);
 }
 
-/* Список источников: свои сверху, дальше по режимам, дальше всё. */
+/* Подходит ли источник под выбранные фильтры. */
+function matchesFilters(source, filters) {
+  if (!filters || !filters.length) return true;
+  for (const filter of filters) {
+    switch (filter) {
+      case 'playsHere':
+        if (source.play.kind !== 'stream') return false;
+        break;
+      case 'noVocals':
+        if (source.vocals !== 'no') return false;
+        break;
+      case 'masking':
+        if (!source.masksSpeech) return false;
+        break;
+      case 'focus':
+        if (!['focus', 'calm'].includes(source.modes.split(' ')[0])) return false;
+        break;
+      case 'noAds':
+        if (source.flags.indexOf('ads') >= 0) return false;
+        break;
+    }
+  }
+  return true;
+}
+
+/* Список источников: один единственный список с фильтрами. */
 function renderMusicResults() {
   const host = document.getElementById('musicResults');
   if (!host) return;
   const query = state.ui.musicQuery || '';
+  const filters = state.ui.musicFilters || [];
   host.textContent = '';
 
-  const own = (state.data.ownSources || []).filter(source => matchesQuery(source, query));
-  const catalog = SOURCES.concat(CANDIDATES).filter(source => matchesQuery(source, query));
+  /* Фильтры музыки. */
+  const filterLabels = [
+    { id: 'playsHere', text: COPY['badge.playsHere'] || 'Играет здесь' },
+    { id: 'noVocals', text: COPY['badge.noVocals'] || 'Без слов' },
+    { id: 'masking', text: COPY['badge.masks'] || 'Глушит разговоры' },
+    { id: 'focus', text: COPY['mode.focus'] || 'Для фокуса' },
+    { id: 'noAds', text: 'Без рекламы' }
+  ];
+  const filterRow = el('div', { class: 'chips-row music__filters no-print' });
+  for (const f of filterLabels) {
+    const isActive = filters.indexOf(f.id) >= 0;
+    const btn = el('button', {
+      class: 'chip' + (isActive ? ' chip--active' : ''),
+      type: 'button',
+      data: { action: 'toggle-music-filter', value: f.id },
+      text: f.text
+    });
+    filterRow.appendChild(btn);
+  }
+  host.appendChild(filterRow);
 
-  if (query.trim()) {
-    /* Счётчик строкой, без выделения. */
-    const total = own.length + catalog.length;
+  /* Фильтруем источники по запросу и выбранным фильтрам. */
+  const own = (state.data.ownSources || []).filter(source => matchesQuery(source, query) && matchesFilters(source, filters));
+  const catalog = SOURCES.concat(CANDIDATES).filter(source => matchesQuery(source, query) && matchesFilters(source, filters));
+
+  /* Счётчик. */
+  const total = own.length + catalog.length;
+  if (query.trim() || filters.length) {
     host.appendChild(el('p', { class: 'small', text: COPY['music.found'] + ' ' + total }));
   }
 
@@ -7200,55 +7438,58 @@ function renderMusicResults() {
     ]));
   }
 
-  if (query.trim()) {
-    const list = el('div', { class: 'cards' });
+  /* Один список всех источников без повторов. */
+  const list = el('div', { class: 'cards' });
+  if (own.length || catalog.length) {
     for (const source of catalog) list.appendChild(sourceCard(source));
-    if (!catalog.length && !own.length) {
-      list.appendChild(el('p', { class: 'small', text: COPY['music.nothing'] }));
-    }
-    host.appendChild(el('div', { class: 'section' }, [
-      el('h2', { class: 'section__title', text: COPY['music.all'] }),
-      list
-    ]));
-    return;
+  } else if (query.trim() || filters.length) {
+    list.appendChild(el('p', { class: 'small', text: COPY['music.nothing'] }));
   }
 
-  for (const mode of MODES) {
-    const list = el('div', { class: 'cards' });
-    const sources = SOURCES.filter(source => source.modes.indexOf(mode.id) >= 0);
-    if (sources.length) {
-      for (const source of sources) list.appendChild(sourceCard(source));
-    } else {
-      list.appendChild(el('p', { class: 'small', text: COPY['music.emptyMode'] }));
-    }
-    host.appendChild(el('div', { class: 'section', attrs: { id: 'mode-' + mode.id } }, [
-      el('h2', { class: 'section__title' }, [
+  if (list.children.length > 0 || (query.trim() || filters.length)) {
+    host.appendChild(el('div', { class: 'section' }, [
+      el('h2', { class: 'section__title', text: COPY['nav.music'] }),
+      list
+    ]));
+  }
+
+  /* Если нет фильтра и нет поиска, показываем строку перехода по режимам. */
+  if (!query.trim() && !filters.length) {
+    const jump = el('div', { class: 'chips-row music__jump' });
+    for (const mode of MODES) {
+      jump.appendChild(el('button', {
+        class: 'chip',
+        type: 'button',
+        data: { action: 'jump-mode', value: mode.id }
+      }, [
         meaningIcon(ICON_BY_MODE[mode.id]),
         el('span', { class: 'dot dot--' + mode.id }),
         el('span', { text: ' ' + mode.title })
-      ]),
-      list
-    ]));
+      ]));
+    }
+    host.appendChild(jump);
   }
 
-  /* Все источники: сюда же попадают кандидаты — с меткой «не проверено».
-     В подбор они не идут никогда. */
-  const all = el('div', { class: 'cards' });
-  for (const source of SOURCES.concat(CANDIDATES)) all.appendChild(sourceCard(source));
-  all.appendChild(el('div', { class: 'own__add' }, [
-    el('button', {
-      class: 'btn btn--secondary',
-      type: 'button',
-      text: COPY['own.add'],
-      data: { action: 'own-add' }
-    })
-  ]));
-  host.appendChild(renderDiscover());
+  /* Все источники (видны только без фильтра и поиска). */
+  if (!query.trim() && !filters.length) {
+    host.appendChild(renderDiscover());
 
-  host.appendChild(el('div', { class: 'section' }, [
-    el('h2', { class: 'section__title', text: COPY['music.all'] }),
-    all
-  ]));
+    const all = el('div', { class: 'cards' });
+    for (const source of SOURCES.concat(CANDIDATES)) all.appendChild(sourceCard(source));
+    all.appendChild(el('div', { class: 'own__add' }, [
+      el('button', {
+        class: 'btn btn--secondary',
+        type: 'button',
+        text: COPY['own.add'],
+        data: { action: 'own-add' }
+      })
+    ]));
+
+    host.appendChild(el('div', { class: 'section' }, [
+      el('h2', { class: 'section__title', text: COPY['music.all'] }),
+      all
+    ]));
+  }
 }
 
 /* ============================================================
@@ -7797,7 +8038,7 @@ function renderMine() {
       const parts = [
         formatSessionDate(record.startedAt),
         head,
-        record.actualMinutes + ' мин',
+        formatSessionDuration(record.actualMinutes),
         sourceText
       ].filter(Boolean);
       const face = ratingFace(record.rating);
@@ -9036,6 +9277,7 @@ function handleAction(action, dataset) {
     case 'clear-data':       confirmClearData(); return;
     case 'profiles':         showProfilesPanel(); return;
     case 'toggle-profile':   toggleProfile(dataset.value); return;
+    case 'toggle-music-filter': toggleMusicFilter(dataset.value); return;
     case 'go-music':         location.hash = '#music'; return;
     case 'go-more':          location.hash = '#more'; return;
     case 'go-more-screen':   location.hash = '#more/' + dataset.target; return;
@@ -9158,6 +9400,7 @@ function resetPageScroll() {
    середину каталога.
 */
 let currentScrollKey = 'today';
+let todayTabSelected = 'state';  /* выбранная вкладка на главном: 'state' | 'task' | 'genre' */
 
 function screenKeyFromHash() {
   const id = (location.hash || '').replace('#', '');
@@ -9203,6 +9446,9 @@ function bindEvents() {
   document.addEventListener('click', function (event) {
     const navBtn = event.target.closest('.nav__item');
     if (navBtn) { location.hash = '#' + navBtn.dataset.screen; return; }
+
+    const tabBtn = event.target.closest('[data-today-tab]');
+    if (tabBtn) { switchTodayTab(tabBtn.dataset.todayTab); return; }
 
     const entryBtn = event.target.closest('[data-entry]');
     if (entryBtn) { selectEntry(entryBtn.dataset.entry, entryBtn.dataset.value); return; }
@@ -9255,8 +9501,20 @@ function bindEvents() {
     event.returnValue = '';
   });
 
+  /* Закрытие сессии при уходе со страницы. */
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && state.session) {
+      finishSession({ autoClose: true });
+    }
+  });
+
   /* Последнее состояние всегда дописываем перед уходом. */
-  window.addEventListener('pagehide', function () { saveState({ immediate: true }); });
+  window.addEventListener('pagehide', function () {
+    if (state.session) {
+      finishSession({ autoClose: true });
+    }
+    saveState({ immediate: true });
+  });
 
   /* Системная тема сменилась — отражаем, если выбран режим «системная». */
   if (window.matchMedia) {
