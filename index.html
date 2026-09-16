@@ -598,13 +598,12 @@ a { color: var(--accent-ink); }
   border-radius: var(--r-btn);
   border: 1px solid transparent;
   cursor: pointer;
-  transition: background-color var(--dur-fast) var(--ease),
-              border-color var(--dur-fast) var(--ease),
-              color var(--dur-fast) var(--ease),
-              transform var(--dur-fast) var(--ease);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all var(--dur-fast) var(--ease);
 }
-.btn:active { transform: scale(.985); }
-.btn[disabled] { opacity: .5; cursor: default; }
+.btn:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.15); transform: translateY(-1px); }
+.btn:active { transform: scale(.98) translateY(0); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+.btn[disabled] { opacity: .5; cursor: default; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
 .btn[disabled]:active { transform: none; }
 
 .btn--primary {
@@ -636,8 +635,10 @@ a { color: var(--accent-ink); }
   color: var(--text-secondary);
   font-size: 14px;
   font-weight: 500;
+  box-shadow: none;
 }
-.btn--ghost:hover { color: var(--text-primary); text-decoration: underline; }
+.btn--ghost:hover { color: var(--text-primary); text-decoration: underline; box-shadow: none; transform: none; }
+.btn--ghost:active { transform: scale(.98); }
 
 .btn--danger { color: var(--danger); border-color: var(--border-strong); }
 .btn--danger:hover { background: var(--bg-hover); }
@@ -655,15 +656,16 @@ a { color: var(--accent-ink); }
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color var(--dur-fast) var(--ease),
-              border-color var(--dur-fast) var(--ease),
-              color var(--dur-fast) var(--ease);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: all var(--dur-fast) var(--ease);
 }
-.chip:hover { border-color: var(--border-strong); color: var(--text-primary); }
+.chip:hover { border-color: var(--border-strong); color: var(--text-primary); box-shadow: 0 2px 4px rgba(0,0,0,0.1); transform: translateY(-1px); }
+.chip:active { transform: scale(.97) translateY(0); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
 .chip[aria-pressed="true"] {
   background: var(--accent-wash);
   border-color: var(--accent);
   color: var(--accent-ink);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .badge {
@@ -1141,6 +1143,16 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
    БЛОК: СПИСКИ, КАРТОЧКИ ИСТОЧНИКОВ, СТРОКИ
    ============================================================ */
 .cards { display: flex; flex-direction: column; gap: var(--sp-3); }
+
+.cards > * {
+  box-shadow: var(--shadow-1);
+  transition: all var(--dur) var(--ease);
+}
+
+.cards > *:hover {
+  box-shadow: var(--shadow-2);
+  transform: translateY(-2px);
+}
 
 .source {
   padding: var(--sp-4) var(--sp-5);
