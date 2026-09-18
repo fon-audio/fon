@@ -5,7 +5,7 @@
    это чужие потоки, на них нужен интернет.
    ============================================================ */
 
-const APP_VERSION = '1.0.24';
+const APP_VERSION = '1.0.25';
 const CACHE = 'fon-ui-' + APP_VERSION;
 
 const SHELL = [
@@ -34,6 +34,7 @@ self.addEventListener('install', function (event) {
     caches.open(CACHE)
       .then(cache => cache.addAll(SHELL).then(() => validateCachedShell(cache)))
       .catch(() => { /* нет сети при установке — не страшно, поставимся позже */ })
+      .then(() => self.skipWaiting())
   );
 });
 
