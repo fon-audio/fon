@@ -1689,7 +1689,7 @@ function safeStep(name, fn) {
 /* ============================================================
    ВЕРСИЯ СБОРКИ
    ============================================================ */
-const APP_VERSION = '1.0.29';
+const APP_VERSION = '1.0.30';
 
 /* ============================================================
    БЛОК: КОНФИГ
@@ -10427,7 +10427,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
   try {
-    navigator.serviceWorker.register('sw.js').then(function (registration) {
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (registration) {
       /* Копия уже ждёт своей очереди — значит, версия новее нашей. */
       if (registration.waiting && navigator.serviceWorker.controller) {
         state.updateWaiting = registration.waiting;
@@ -10446,6 +10446,15 @@ function registerServiceWorker() {
       });
     }).catch(function () {
       /* Не зарегистрировался — приложение всё равно работает. */
+    });
+
+    /* При возврате на вкладку проверяем обновление. */
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) {
+        navigator.serviceWorker.getRegistration().then(function (r) {
+          if (r) r.update();
+        });
+      }
     });
 
     /* Спрашиваем сами: сервис-воркер сравнит кеш со свежим файлом.
