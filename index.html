@@ -522,19 +522,19 @@ a { color: var(--accent-ink); }
 
 /* Табы выбора раздела главного экрана. */
 .today-tabs {
-  display: flex;
-  gap: var(--sp-4);
+  display: block;
   margin-bottom: var(--sp-5);
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: var(--sp-3);
+  padding: var(--sp-3) 0;
+  font-size: 14px;
 }
 .today-tab {
   appearance: none;
   background: none;
   border: none;
-  padding: 0;
+  padding: 0 var(--sp-2);
   min-height: 44px;
-  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
   color: var(--text-secondary);
   font-size: 14px;
   font-weight: 500;
@@ -544,6 +544,10 @@ a { color: var(--accent-ink); }
 }
 .today-tab:hover { color: var(--text-primary); }
 .today-tab--active { color: var(--text-primary); }
+.today-tabs__sep {
+  display: inline;
+  color: var(--text-secondary);
+}
 
 .today-content { }
 .today-block.hidden { display: none; }
@@ -6976,7 +6980,7 @@ function renderLastSession() {
   if (!source || !mode) return null;
 
   const parts = [mode.title, source.title];
-  if (last.actualMinutes) parts.push(last.actualMinutes + ' мин');
+  if (last.actualMinutes) parts.push(formatSessionDuration(last.actualMinutes));
 
   return el('div', { class: 'entry' }, [
     el('h2', { class: 'entry__title', text: COPY['mine.recent'] }),
@@ -7012,12 +7016,13 @@ function renderToday() {
     /* Табы для выбора раздела: Состояние · Занятие · Музыка */
     const tabs = el('div', { class: 'today-tabs' });
     const tabLabels = [
-      { id: 'state', label: COPY['today.state'] },
-      { id: 'task', label: COPY['today.byTask'] },
-      { id: 'genre', label: COPY['today.byMusic'] }
+      { id: 'state', label: 'Состояние' },
+      { id: 'task', label: 'Занятие' },
+      { id: 'genre', label: 'Музыка' }
     ];
 
-    for (const tab of tabLabels) {
+    for (let i = 0; i < tabLabels.length; i++) {
+      const tab = tabLabels[i];
       const btn = el('button', {
         class: 'today-tab' + (todayTabSelected === tab.id ? ' today-tab--active' : ''),
         type: 'button',
@@ -7025,6 +7030,9 @@ function renderToday() {
         text: tab.label
       });
       tabs.appendChild(btn);
+      if (i < tabLabels.length - 1) {
+        tabs.appendChild(el('span', { class: 'today-tabs__sep', text: '·' }));
+      }
     }
     section.appendChild(tabs);
 
