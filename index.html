@@ -1689,7 +1689,7 @@ function safeStep(name, fn) {
 /* ============================================================
    ВЕРСИЯ СБОРКИ
    ============================================================ */
-const APP_VERSION = '1.0.28';
+const APP_VERSION = '1.0.29';
 
 /* ============================================================
    БЛОК: КОНФИГ
@@ -4227,9 +4227,7 @@ const player = {
   connectTimer: null,    /* таймер подключения к потоку */
   fadeTimer: null,       /* таймер для плавного изменения громкости */
   listeners: { playing: [], error: [], stalled: [], sourceDead: [] },
-  progressCheckTimer: null,
   lastCurrentTime: 0,
-  lastProgressTime: 0,
   stallDetectionTime: null,
   _hasPlayed: false,
   _deadHandled: false,
@@ -4433,7 +4431,7 @@ const player = {
     if (this.audio && !this.audio.paused) this.audio.pause();
     this.clearStallTimer();
     this.clearConnectTimer();
-    this.stopProgressMonitor();
+    this.clearProgressWatch();
   },
 
   resume() {
@@ -4446,7 +4444,7 @@ const player = {
   },
 
   stop() {
-    this.stopProgressMonitor();
+    this.clearProgressWatch();
     this.clearStallTimer();
     this.clearConnectTimer();
     this.clearAudioListeners();
