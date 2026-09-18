@@ -5,7 +5,8 @@
    это чужие потоки, на них нужен интернет.
    ============================================================ */
 
-const CACHE = 'fon-ui-v5';
+const APP_VERSION = '1.0.23';
+const CACHE = 'fon-ui-' + APP_VERSION;
 
 const SHELL = [
   './',

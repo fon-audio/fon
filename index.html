@@ -1212,6 +1212,7 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
 .more__options { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 .more__hint { font-size: 13px; color: var(--text-3); margin-top: var(--sp-2); }
 .more__row--active { background: rgba(126, 104, 73, .1); }
+.more__version { font-size: 11px; color: var(--text-3); text-align: center; padding: var(--sp-4) 0 var(--sp-2); margin-top: var(--sp-4); border-top: 1px solid var(--border-color); }
 .more__container { display: grid; grid-template-columns: 1fr; gap: 0; }
 @media (min-width: 1024px) {
   .more__container { grid-template-columns: 280px 1fr; gap: var(--sp-5); padding: var(--sp-5); }
@@ -1680,6 +1681,11 @@ function safeStep(name, fn) {
 }
 
 (function () {
+
+/* ============================================================
+   ВЕРСИЯ СБОРКИ
+   ============================================================ */
+const APP_VERSION = '1.0.23';
 
 /* ============================================================
    БЛОК: КОНФИГ
@@ -8338,6 +8344,7 @@ function renderMoreIndex() {
     });
     section.appendChild(moreGroup(group.group, rows));
   }
+  section.appendChild(el('div', { class: 'more__version', text: 'v' + APP_VERSION }));
   return section;
 }
 
