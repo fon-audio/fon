@@ -1689,7 +1689,7 @@ function safeStep(name, fn) {
 /* ============================================================
    ВЕРСИЯ СБОРКИ
    ============================================================ */
-const APP_VERSION = '1.0.30';
+const APP_VERSION = '1.0.31';
 
 /* ============================================================
    БЛОК: КОНФИГ
@@ -4473,7 +4473,7 @@ const player = {
     this._deadHandled = true;
     this.clearProgressWatch();
     this.clearStallTimer();
-    session.notice = COPY['session.status.switching'];
+    state.session.notice = COPY['session.status.switching'];
     updateSessionNotice();
     this.nextSource();
   }
@@ -9638,17 +9638,21 @@ function bindEvents() {
     event.returnValue = '';
   });
 
-  /* Закрытие сессии при уходе со страницы. */
+  /* Сохранение отметки времени при сворачивании для проверки неактивности. */
   document.addEventListener('visibilitychange', function () {
     if (document.hidden && state.session) {
-      finishSession({ autoClose: true });
+      try {
+        localStorage.setItem('lastVisibleTime', Date.now().toString());
+      } catch (e) {}
     }
   });
 
   /* Последнее состояние всегда дописываем перед уходом. */
   window.addEventListener('pagehide', function () {
     if (state.session) {
-      finishSession({ autoClose: true });
+      try {
+        localStorage.setItem('lastVisibleTime', Date.now().toString());
+      } catch (e) {}
     }
     saveState({ immediate: true });
   });
