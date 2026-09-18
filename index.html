@@ -4475,10 +4475,6 @@ const player = {
     this._deadHandled = true;
     this.clearProgressWatch();
     this.clearStallTimer();
-    // ВРЕМЕННО: отладка Шага 3, удалить на Шаге 4
-    const now = new Date().toLocaleTimeString();
-    const currentName = this.source && (this.source.title || this.source.name);
-    console.log(`[${now}] → переключаюсь с ${currentName}`);
     session.notice = COPY['session.status.switching'];
     updateSessionNotice();
     this.nextSource();
