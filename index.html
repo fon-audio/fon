@@ -4268,7 +4268,7 @@ const player = {
     if (player.audio && player.audio === e.target) {
       player.clearStallTimer();
       player.clearConnectTimer();
-      player.startProgressMonitor();
+      player.startProgressWatch();
       player.emit('playing', player.source);
     }
   },
@@ -4301,10 +4301,9 @@ const player = {
   },
 
   onAudioEnded: function() {
-    const sourceName = player.source?.title || 'unknown';
-    const timeMs = player.stallDetectionTime ? (Date.now() - player.stallDetectionTime) : 0;
-    console.warn(`[${new Date().toISOString()}] ⚠️ Конец потока: ${sourceName} (${timeMs}ms после обнаружения)`);
-    player.stallDetectionTime = Date.now();
+    console.warn('[Фон] поток закончился сам (ended)', {
+      источник: player.source && (player.source.title || player.source.name)
+    });
   },
 
   clearAudioListeners() {
@@ -4314,41 +4313,51 @@ const player = {
     this.audio.removeEventListener('stalled', this.onAudioStalled);
     this.audio.removeEventListener('error', this.onAudioError);
     this.audio.removeEventListener('ended', this.onAudioEnded);
+    this.clearProgressWatch();
   },
 
   startStallTimer() {
     if (this.stallTimer) return;
     this.stallTimer = setTimeout(() => {
       this.stallTimer = null;
+      console.warn('[Фон] сработал таймер подвисания', {
+        источник: this.source && (this.source.title || this.source.name),
+        таймаутМс: CONFIG.stallNoticeMs
+      });
       if (this.source) this.emit('stalled', this.source);
     }, CONFIG.stallNoticeMs);
   },
 
-  startProgressMonitor() {
-    if (this.progressCheckTimer) return;
-    this.lastCurrentTime = 0;
-    this.lastProgressTime = Date.now();
-    this.progressCheckTimer = setInterval(() => {
-      if (!this.audio || this.audio.paused) return;
-      if (this.audio.currentTime === this.lastCurrentTime) {
-        const stalledSeconds = (Date.now() - this.lastProgressTime) / 1000;
-        if (stalledSeconds >= 10) {
-          const sourceName = this.source?.title || 'unknown';
-          console.warn(`[${new Date().toISOString()}] ⚠️ Стоп прогресса: ${sourceName} (${stalledSeconds.toFixed(1)}s)`);
-          this.stallDetectionTime = Date.now();
+  startProgressWatch() {
+    this.clearProgressWatch();
+    this._lastTime = -1;
+    this._sameTimeSec = 0;
+    this._playStartedAt = Date.now();
+    this._progressTimer = setInterval(() => {
+      const a = this.audio;
+      if (!a || a.paused) return;
+      const now = a.currentTime;
+      if (Math.abs(now - this._lastTime) < 0.05) {
+        this._sameTimeSec++;
+        if (this._sameTimeSec === 10) {
+          console.warn('[Фон] поток встал: звук не двигается 10 секунд', {
+            источник: this.source && (this.source.title || this.source.name),
+            игралСекунд: Math.round((Date.now() - this._playStartedAt) / 1000)
+          });
         }
       } else {
-        this.lastCurrentTime = this.audio.currentTime;
-        this.lastProgressTime = Date.now();
+        this._sameTimeSec = 0;
       }
+      this._lastTime = now;
     }, 1000);
   },
 
-  stopProgressMonitor() {
-    if (this.progressCheckTimer) {
-      clearInterval(this.progressCheckTimer);
-      this.progressCheckTimer = null;
+  clearProgressWatch() {
+    if (this._progressTimer) {
+      clearInterval(this._progressTimer);
+      this._progressTimer = null;
     }
+    this._sameTimeSec = 0;
   },
 
   clearStallTimer() {
