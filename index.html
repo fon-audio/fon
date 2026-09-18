@@ -4215,6 +4215,7 @@ const player = {
   urlIndex: 0,
   stallTimer: null,
   connectTimer: null,    /* таймер подключения к потоку */
+  fadeTimer: null,       /* таймер для плавного изменения громкости */
   listeners: { playing: [], error: [], stalled: [], sourceDead: [] },
 
   on(event, handler) {
@@ -4238,17 +4239,41 @@ const player = {
        и управление с наушников. */
     document.body.appendChild(audio);
 
-    audio.addEventListener('playing', () => {
-      this.clearStallTimer();
-      this.clearConnectTimer();
-      this.emit('playing', this.source);
-    });
-    audio.addEventListener('waiting', () => this.startStallTimer());
-    audio.addEventListener('stalled', () => this.startStallTimer());
-    audio.addEventListener('error', () => this.tryNextUrl());
+    audio.addEventListener('playing', this.onAudioPlaying);
+    audio.addEventListener('waiting', this.onAudioWaiting);
+    audio.addEventListener('stalled', this.onAudioStalled);
+    audio.addEventListener('error', this.onAudioError);
 
     this.audio = audio;
     return audio;
+  },
+
+  onAudioPlaying: function(e) {
+    if (player.audio && player.audio === e.target) {
+      player.clearStallTimer();
+      player.clearConnectTimer();
+      player.emit('playing', player.source);
+    }
+  },
+
+  onAudioWaiting: function() {
+    player.startStallTimer();
+  },
+
+  onAudioStalled: function() {
+    player.startStallTimer();
+  },
+
+  onAudioError: function() {
+    player.tryNextUrl();
+  },
+
+  clearAudioListeners() {
+    if (!this.audio) return;
+    this.audio.removeEventListener('playing', this.onAudioPlaying);
+    this.audio.removeEventListener('waiting', this.onAudioWaiting);
+    this.audio.removeEventListener('stalled', this.onAudioStalled);
+    this.audio.removeEventListener('error', this.onAudioError);
   },
 
   startStallTimer() {
@@ -4338,6 +4363,7 @@ const player = {
   stop() {
     this.clearStallTimer();
     this.clearConnectTimer();
+    this.clearAudioListeners();
     this.source = null;
     this.urls = [];
     this.urlIndex = 0;
@@ -4522,16 +4548,20 @@ function fadeVolume(to, ms, done) {
   if (!audio) { if (done) done(); return; }
   const from = audio.volume;
   const start = Date.now();
-  if (player.fadeTimer) clearInterval(player.fadeTimer);
-  player.fadeTimer = setInterval(function () {
+  if (player.fadeTimer) cancelAnimationFrame(player.fadeTimer);
+
+  function fadeFrame() {
     const share = Math.min(1, (Date.now() - start) / ms);
     audio.volume = Math.max(0, Math.min(1, from + (to - from) * share));
     if (share >= 1) {
-      clearInterval(player.fadeTimer);
       player.fadeTimer = null;
       if (done) done();
+    } else {
+      player.fadeTimer = requestAnimationFrame(fadeFrame);
     }
-  }, 50);
+  }
+
+  player.fadeTimer = requestAnimationFrame(fadeFrame);
 }
 
 function startBreak() {
@@ -4997,7 +5027,7 @@ function el(tag, options, children) {
     }
   }
   if (opts.data) {
-    for (const key in opts.data) node.dataset[key] = opts.data[key];
+    for (const key in opts.data) node.setAttribute('data-' + key, opts.data[key]);
   }
   if (children) {
     for (const child of children) {
@@ -6079,11 +6109,24 @@ function updateTimerDisplay() {
 
 function startTick() {
   stopTick();
-  tickTimer = setInterval(updateTimerDisplay, 1000);
+  let lastUpdate = Date.now();
+
+  function tickFrame() {
+    const now = Date.now();
+    if (now - lastUpdate >= 1000) {
+      updateTimerDisplay();
+      lastUpdate = now;
+    }
+    if (state.session) {
+      tickTimer = requestAnimationFrame(tickFrame);
+    }
+  }
+
+  tickTimer = requestAnimationFrame(tickFrame);
 }
 
 function stopTick() {
-  if (tickTimer) { clearInterval(tickTimer); tickTimer = null; }
+  if (tickTimer) { cancelAnimationFrame(tickTimer); tickTimer = null; }
 }
 
 function togglePause() {
@@ -6981,18 +7024,16 @@ function renderToday() {
 
     /* Контейнер для контента вкладок. Показываем все, но прячем неактивные. */
     const content = el('div', { class: 'today-content' });
-    const stateBlock = el('div', { class: 'today-block' + (todayTabSelected === 'state' ? '' : ' hidden') });
-    stateBlock.appendChild(renderStateEntry());
-    content.appendChild(stateBlock);
-
-    const taskBlock = el('div', { class: 'today-block' + (todayTabSelected === 'task' ? '' : ' hidden') });
-    taskBlock.appendChild(renderTaskEntry());
-    content.appendChild(taskBlock);
-
-    const genreBlock = el('div', { class: 'today-block' + (todayTabSelected === 'genre' ? '' : ' hidden') });
-    genreBlock.appendChild(renderGenreEntry());
-    content.appendChild(genreBlock);
-
+    const tabContents = [
+      { id: 'state', render: renderStateEntry },
+      { id: 'task', render: renderTaskEntry },
+      { id: 'genre', render: renderGenreEntry }
+    ];
+    for (const tab of tabContents) {
+      const block = el('div', { class: 'today-block' + (todayTabSelected === tab.id ? '' : ' hidden') });
+      block.appendChild(tab.render());
+      content.appendChild(block);
+    }
     section.appendChild(content);
   }
 
@@ -7971,6 +8012,13 @@ function ratingFace(rating) {
   return '';
 }
 
+function screenSection(titleKey, content) {
+  return el('div', { class: 'section' }, [
+    el('h2', { class: 'section__title', text: COPY[titleKey] }),
+    content
+  ]);
+}
+
 function renderMine() {
   const section = screenShell(COPY['nav.mine']);
 
@@ -8003,10 +8051,7 @@ function renderMine() {
     const starters = renderStarterSets();
     if (starters) presets.appendChild(starters);
   }
-  section.appendChild(el('div', { class: 'section' }, [
-    el('h2', { class: 'section__title', text: COPY['mine.presets'] }),
-    presets
-  ]));
+  section.appendChild(screenSection('mine.presets', presets));
 
   /* Избранное */
   const favorites = el('div', { class: 'cards' });
@@ -8016,10 +8061,7 @@ function renderMine() {
   } else {
     favorites.appendChild(el('p', { class: 'small', text: COPY['empty.favorites'] }));
   }
-  section.appendChild(el('div', { class: 'section' }, [
-    el('h2', { class: 'section__title', text: COPY['mine.favorites'] }),
-    favorites
-  ]));
+  section.appendChild(screenSection('mine.favorites', favorites));
 
   /* Последнее */
   const recent = el('div', { class: 'cards' });
@@ -8065,10 +8107,7 @@ function renderMine() {
   } else {
     recent.appendChild(el('p', { class: 'small', text: COPY['empty.recent'] }));
   }
-  section.appendChild(el('div', { class: 'section' }, [
-    el('h2', { class: 'section__title', text: COPY['mine.recent'] }),
-    recent
-  ]));
+  section.appendChild(screenSection('mine.recent', recent));
 
   return section;
 }
