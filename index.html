@@ -1689,7 +1689,7 @@ function safeStep(name, fn) {
 /* ============================================================
    ВЕРСИЯ СБОРКИ
    ============================================================ */
-const APP_VERSION = '1.0.27';
+const APP_VERSION = '1.0.28';
 
 /* ============================================================
    БЛОК: КОНФИГ
@@ -1711,7 +1711,6 @@ const CONFIG = {
   channelName: 'fon-tabs',   /* канал, через который вкладки договариваются */
   pingKey: 'mfp.ping',       /* откат на событие storage */
   stallNoticeMs: 10000,      /* сколько ждём подвисший поток, прежде чем сказать */
-  stallTimeoutMs: 8000,      /* оборвавшийся поток: переключаемся на следующий источник */
   connectTimeoutMs: 5000,   /* таймут на подключение к потоку, прежде чем пробовать следующий адрес */
   historyWindow: 20,         /* сколько последних сессий смотрит движок */
   recentLimit: 10            /* сколько сессий показываем в «Последнем» */
@@ -4476,6 +4475,10 @@ const player = {
     this._deadHandled = true;
     this.clearProgressWatch();
     this.clearStallTimer();
+    // ВРЕМЕННО: отладка Шага 3, удалить на Шаге 4
+    const now = new Date().toLocaleTimeString();
+    const currentName = this.source && (this.source.title || this.source.name);
+    console.log(`[${now}] → переключаюсь с ${currentName}`);
     session.notice = COPY['session.status.switching'];
     updateSessionNotice();
     this.nextSource();
