@@ -81,9 +81,11 @@
   /* Цвета режимов — только точки-индикаторы и лёгкая подложка */
   --mode-check:   #5B7FA6;
   --mode-draw:    #6E8F6B;
-  --mode-flow:    #C08A4A;
+  /* energy (--mode-flow) и calm в светлой теме темнее: точка должна давать ≥3:1 к фону. */
+  --mode-flow:    #AD7632;
   --mode-create:  #8A6EA6;
-  --mode-routine: #8E8E93;
+  --mode-routine: #84848A;
+  --mode-calm:    #5A8A84;
 
   /* Форма */
   --r-card: 14px;
@@ -134,6 +136,11 @@
   --bg-hover:       #262628;
   --bg-pressed:     rgba(255, 255, 255, 0.1);
   --border-color:   #2E2E30;
+
+  /* Цвета режимов в тёмной теме — исходные из tz/data/modes.js. */
+  --mode-flow:      #C08A4A;
+  --mode-calm:      #6E9A94;
+  --mode-routine:   #8E8E93;
 }
 
 /* ============================================================
@@ -669,6 +676,24 @@ a { color: var(--accent-ink); }
   border-color: var(--accent);
   color: var(--accent-ink);
 }
+.chip[aria-pressed="true"]::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 9px;
+  margin: 0 7px 2px 0;
+  border: solid var(--accent);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  flex: none;
+}
+/* Текущая пилюль-переход: инверсия. :hover перекрываем, чтобы текст не пропадал. */
+.chip[aria-current="true"],
+.chip[aria-current="true"]:hover {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+  color: var(--bg);
+}
 
 .badge {
   display: inline-block;
@@ -686,7 +711,7 @@ a { color: var(--accent-ink); }
 .badge--location {
   background: transparent;
   border: 1px solid var(--border-strong);
-  color: var(--text-primary);
+  color: var(--text-secondary);
   padding: 1px 5px;
 }
 .badges { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
@@ -699,9 +724,13 @@ a { color: var(--accent-ink); }
 }
 .dot--check   { background: var(--mode-check); }
 .dot--draw    { background: var(--mode-draw); }
-.dot--flow    { background: var(--mode-flow); }
+.dot--flow    { background: var(--mode-draw); }
 .dot--create  { background: var(--mode-create); }
 .dot--routine { background: var(--mode-routine); }
+.dot--focus   { background: var(--mode-check); }
+.dot--energy  { background: var(--mode-flow); }
+.dot--ideas   { background: var(--mode-create); }
+.dot--calm    { background: var(--mode-calm); }
 
 /* ============================================================
    БЛОК: КАРТОЧКА РЕКОМЕНДАЦИИ
@@ -723,7 +752,7 @@ a { color: var(--accent-ink); }
 /* Лёгкая подложка цветом режима — единственное место, где он заливает фон */
 .rec--check   { background: color-mix(in srgb, var(--mode-check)   8%, var(--bg-elevated)); }
 .rec--draw    { background: color-mix(in srgb, var(--mode-draw)    8%, var(--bg-elevated)); }
-.rec--flow    { background: color-mix(in srgb, var(--mode-flow)    8%, var(--bg-elevated)); }
+.rec--flow    { background: color-mix(in srgb, var(--mode-draw)    8%, var(--bg-elevated)); }
 .rec--create  { background: color-mix(in srgb, var(--mode-create)  8%, var(--bg-elevated)); }
 .rec--routine { background: color-mix(in srgb, var(--mode-routine) 8%, var(--bg-elevated)); }
 
@@ -867,12 +896,12 @@ a { color: var(--accent-ink); }
 .session__status {
   font-size: 17px;
   font-weight: 500;
-  color: var(--text-1);
+  color: var(--text-primary);
   min-height: 1.55em;
 }
 
 .session__source-row { display: flex; align-items: center; gap: var(--sp-2); justify-content: space-between; }
-.session__equalizer { display: flex; align-items: center; color: var(--text-1); width: 20px; height: 20px; }
+.session__equalizer { display: flex; align-items: center; color: var(--text-primary); width: 20px; height: 20px; }
 .session__status-eq { width: 20px; height: 20px; }
 
 .equalizer-icon { display: block; width: 16px; height: 12px; }
@@ -988,6 +1017,14 @@ a { color: var(--accent-ink); }
 body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) + env(safe-area-inset-bottom)); }
 @media (min-width: 768px) {
   body.has-mini .content { padding-bottom: calc(var(--tabbar-h) + var(--sp-8)); }
+}
+/* «Наверх» выше мини-плеера: .mini высотой 61 px стоит над нижней навигацией. */
+body.has-mini .scroll-to-top {
+  bottom: calc(var(--tabbar-h) + 61px + var(--sp-4) + env(safe-area-inset-bottom));
+}
+@media (min-width: 768px) {
+  .scroll-to-top { bottom: calc(var(--sp-4) + env(safe-area-inset-bottom)); }
+  body.has-mini .scroll-to-top { bottom: calc(61px + var(--sp-4) + env(safe-area-inset-bottom)); }
 }
 
 /* ============================================================
@@ -1186,6 +1223,69 @@ body.has-mini .content { padding-bottom: calc(var(--tabbar-h) * 2 + var(--sp-8) 
 .rec__head .ic, .session__mode .ic, .section__title .ic { color: var(--text-3); }
 
 .music__jump { margin-bottom: var(--sp-4); }
+.music__filters,
+.music__jump {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--sp-2);
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  /* Строка выходит в поля страницы: затухание приходится на поле, а не на первую/последнюю пилюлю. */
+  margin-left: calc(-1 * var(--sp-4));
+  margin-right: calc(-1 * var(--sp-4));
+  padding: 0 var(--sp-4);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 16px), transparent);
+          mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 16px), transparent);
+}
+.music__filters::-webkit-scrollbar,
+.music__jump::-webkit-scrollbar { display: none; }
+.music__filters .chip,
+.music__jump .chip { flex: none; white-space: nowrap; }
+.music__filters { margin-top: var(--sp-2); margin-bottom: var(--sp-2); }
+.chip--mode { gap: 6px; }
+
+/* Липкая панель с пилюлями режимов: шапка не sticky, поэтому top: 0. */
+.music__nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--bg);
+  padding: var(--sp-2) 0;
+  border-bottom: 1px solid var(--border-color);
+}
+.music__nav .music__jump { margin-bottom: 0; }
+.music__group { scroll-margin-top: 70px; margin-top: var(--sp-6); }
+.music__group-title {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: 17px;
+  line-height: 1.4;
+  font-weight: 600;
+  margin-bottom: var(--sp-3);
+}
+.music__group-count { font-size: 13px; font-weight: 400; color: var(--text-secondary); }
+.music__status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.music__reset {
+  min-height: 44px;
+  padding: 0 var(--sp-2);
+  background: none;
+  border: 0;
+  color: var(--text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+.music__reset:hover { color: var(--text-primary); text-decoration: underline; }
+.music__empty { padding: var(--sp-6) var(--sp-4); text-align: center; color: var(--text-secondary); }
 
 /* Раздел «Ещё» — оглавление и подэкраны */
 .more__group { background: var(--bg-hover); border-radius: var(--r-card); margin-bottom: var(--sp-5); overflow: hidden; }
@@ -1689,7 +1789,7 @@ function safeStep(name, fn) {
 /* ============================================================
    ВЕРСИЯ СБОРКИ
    ============================================================ */
-const APP_VERSION = '1.0.31';
+const APP_VERSION = '1.0.33';
 
 /* ============================================================
    БЛОК: КОНФИГ
@@ -1710,8 +1810,11 @@ const CONFIG = {
   staleSessionMs: 12 * 60 * 60 * 1000,   /* незакрытая сессия живёт 12 часов */
   channelName: 'fon-tabs',   /* канал, через который вкладки договариваются */
   pingKey: 'mfp.ping',       /* откат на событие storage */
-  stallNoticeMs: 10000,      /* сколько ждём подвисший поток, прежде чем сказать */
-  connectTimeoutMs: 5000,   /* таймут на подключение к потоку, прежде чем пробовать следующий адрес */
+  stallNoticeMs: 20000,      /* было 10000 — на мобильной связи буферизация долгая */
+  connectTimeoutMs: 5000,    /* таймут на подключение к потоку, прежде чем пробовать следующий адрес */
+  deadAirSec: 25,            /* сколько секунд звук может не двигаться, прежде чем считать поток мёртвым */
+  maxSwitches: 2,            /* не больше двух переходов подряд, дальше перебирать бессмысленно */
+  resetAfterSec: 60,         /* минута нормальной игры обнуляет счётчик переходов */
   historyWindow: 20,         /* сколько последних сессий смотрит движок */
   recentLimit: 10            /* сколько сессий показываем в «Последнем» */
 };
@@ -2145,10 +2248,6 @@ const SOURCE_ROWS = [
 ['rp-main','Radio Paradise — Main Mix','Radio Paradise','Эклектика, ручная подборка','routine ideas','yes',0,'medium',3,0,
  'stream','https://stream.radioparadise.com/mp3-192','https://radioparadise.com/listen/channels/main-mix',1,'v','',
  'Некоммерческое, без рекламы, подборка вручную'],
-
-['rsj','Radio Swiss Jazz','SRG SSR','Jazz без ведущих','ideas routine','yes',0,'medium',3,0,
- 'stream','https://stream.srg-ssr.ch/srgssr/rsj/mp3/128','https://www.radioswissjazz.ch/en',1,'v','',
- 'Без рекламы и без болтовни'],
 
 ['nts-poolside','Poolside','NTS','Balearic / boogie','routine energy','yes',0,'medium',3,0,
  'stream','https://stream-mixtape-geo.ntslive.net/mixtape4','https://www.nts.live/infinite-mixtapes/poolside',1,'v','',''],
@@ -3636,6 +3735,17 @@ const COPY = {
   'music.search': 'Поиск по названию, сервису, жанру',
   'music.found': 'Найдено:',
   'music.nothing': 'Ничего не нашлось.',
+  'music.shown': 'Показано',
+  'music.of': 'из',
+  'music.reset': 'Сбросить',
+  'music.other': 'Прочее',
+  'music.nav.label': 'Режимы',
+  'music.filters.label': 'Фильтры',
+  'music.filter.playsHere': 'Играет здесь',
+  'music.filter.noVocals': 'Без слов',
+  'music.filter.masking': 'Глушит разговоры',
+  'music.filter.focus': 'Для фокуса',
+  'music.filter.noAds': 'Без рекламы',
   'music.own': 'Свои источники',
   'discover.title': 'Разобраться',
   'discover.what': 'Что это',
@@ -3802,8 +3912,6 @@ const COPY = {
   'resume.restart': 'Начать заново с этой задачей',
   'resume.finish': 'Завершить',
   'session.openHint': 'Источник открыт в новой вкладке.',
-  'session.openPage': 'Этот поток сейчас не открывается',
-  'session.streamDead': 'Поток не отвечает. Можно открыть на сайте',
   'session.openService': 'Открыть страницу сервиса',
   'session.stalled': 'Поток подвисает',
   'session.volume': 'Громкость фона',
@@ -3812,6 +3920,8 @@ const COPY = {
   'session.status.external': 'Играет на странице сервиса',
   'session.status.connecting': 'Подключаюсь…',
   'session.status.switching': 'Не отвечает, беру следующую',
+  'session.status.offline': 'Нет связи. Жду',
+  'session.status.giveUp': 'Не получается подключиться. Нажмите «Другой вариант»',
   'session.status.playing': 'Играет',
   'session.status.paused': 'На паузе',
   'session.status.pausedOwn': 'Пауза. Таймер остановлен',
@@ -4231,6 +4341,7 @@ const player = {
   stallDetectionTime: null,
   _hasPlayed: false,
   _deadHandled: false,
+  _attemptToken: 0,
 
   on(event, handler) {
     if (this.listeners[event]) this.listeners[event].push(handler);
@@ -4242,25 +4353,26 @@ const player = {
   },
 
   /* Элемент создаётся один раз и живёт до конца сессии страницы. */
+  /* Элемент создаётся один раз. Слушатели снимает stop() на каждой смене
+     источника, поэтому вешаем их заново; повтор с той же функцией не дублируется. */
   ensureAudio() {
-    if (this.audio) return this.audio;
-    const audio = document.createElement('audio');
-    audio.preload = 'none';
-    audio.hidden = true;
-    audio.setAttribute('aria-hidden', 'true');
-    audio.volume = state.data.settings.volume;
-    /* Элемент живёт в документе: так надёжнее работают Media Session
-       и управление с наушников. */
-    document.body.appendChild(audio);
-
-    audio.addEventListener('playing', this.onAudioPlaying);
-    audio.addEventListener('waiting', this.onAudioWaiting);
-    audio.addEventListener('stalled', this.onAudioStalled);
-    audio.addEventListener('error', this.onAudioError);
-    audio.addEventListener('ended', this.onAudioEnded);
-
-    this.audio = audio;
-    return audio;
+    if (!this.audio) {
+      const audio = document.createElement('audio');
+      audio.preload = 'none';
+      audio.hidden = true;
+      audio.setAttribute('aria-hidden', 'true');
+      audio.volume = state.data.settings.volume;
+      /* Элемент живёт в документе: так надёжнее работают Media Session
+         и управление с наушников. */
+      document.body.appendChild(audio);
+      this.audio = audio;
+    }
+    this.audio.addEventListener('playing', this.onAudioPlaying);
+    this.audio.addEventListener('waiting', this.onAudioWaiting);
+    this.audio.addEventListener('stalled', this.onAudioStalled);
+    this.audio.addEventListener('error', this.onAudioError);
+    this.audio.addEventListener('ended', this.onAudioEnded);
+    return this.audio;
   },
 
   onAudioPlaying: function(e) {
@@ -4269,6 +4381,10 @@ const player = {
       player.clearStallTimer();
       player.clearConnectTimer();
       player.startProgressWatch();
+      clearTimeout(player._resetTimer);
+      player._resetTimer = setTimeout(function () {
+        player._switches = 0;
+      }, CONFIG.resetAfterSec * 1000);
       player.emit('playing', player.source);
     }
   },
@@ -4297,7 +4413,7 @@ const player = {
       console.warn(`[${new Date().toISOString()}] ⚠️ Ошибка потока: ${sourceName}`);
       player.stallDetectionTime = Date.now();
     }
-    if (player._hasPlayed) player.handleDeadStream();
+    if (player._hasPlayed) player.handleDeadStream('error');
     else player.tryNextUrl();
   },
 
@@ -4305,7 +4421,7 @@ const player = {
     console.warn('[Фон] поток закончился сам (ended)', {
       источник: player.source && (player.source.title || player.source.name)
     });
-    player.handleDeadStream();
+    player.handleDeadStream('ended');
   },
 
   clearAudioListeners() {
@@ -4326,7 +4442,6 @@ const player = {
         источник: this.source && (this.source.title || this.source.name),
         таймаутМс: CONFIG.stallNoticeMs
       });
-      player.handleDeadStream();
       if (this.source) this.emit('stalled', this.source);
     }, CONFIG.stallNoticeMs);
   },
@@ -4342,12 +4457,12 @@ const player = {
       const now = a.currentTime;
       if (Math.abs(now - this._lastTime) < 0.05) {
         this._sameTimeSec++;
-        if (this._sameTimeSec === 10) {
-          console.warn('[Фон] поток встал: звук не двигается 10 секунд', {
+        if (this._sameTimeSec === CONFIG.deadAirSec) {
+          console.warn('[Фон] поток встал: звук не двигается ' + CONFIG.deadAirSec + ' секунд', {
             источник: this.source && (this.source.title || this.source.name),
             игралСекунд: Math.round((Date.now() - this._playStartedAt) / 1000)
           });
-          player.handleDeadStream();
+          player.handleDeadStream('dead-air');
         }
       } else {
         this._sameTimeSec = 0;
@@ -4372,7 +4487,7 @@ const player = {
     this.clearConnectTimer();
     this.connectTimer = setTimeout(() => {
       this.connectTimer = null;
-      if (this.source) this.tryNextUrl();
+      if (this.source) this.tryNextUrl('connect-timeout');
     }, CONFIG.connectTimeoutMs || 12000);
   },
 
@@ -4382,20 +4497,29 @@ const player = {
 
   /* Молча пробуем один запасной адрес той же станции; не помог —
      сообщаем наверх, чтобы перейти к следующему источнику в цепочке. */
-  tryNextUrl() {
+  tryNextUrl(reason) {
+    if (this.urlIndex >= this.urls.length) return;
     this.urlIndex++;
     if (this.urlIndex >= this.urls.length) {
       this.clearStallTimer();
       this.clearConnectTimer();
-      this.emit('sourceDead', this.source);
+      this.emit('sourceDead', reason || 'addresses-exhausted');
       return;
     }
     const audio = this.ensureAudio();
     audio.src = this.urls[this.urlIndex];
     audio.load();
     this.startConnectTimer();
+    this.playAttempt(audio);
+  },
+
+  /* Отказ play() от уже сброшенной попытки не должен считаться сбоем новой. */
+  playAttempt(audio) {
+    const token = ++this._attemptToken;
     const attempt = audio.play();
-    if (attempt && attempt.catch) attempt.catch(() => this.tryNextUrl());
+    if (attempt && attempt.catch) {
+      attempt.catch(() => { if (token === this._attemptToken) this.tryNextUrl(); });
+    }
   },
 
   /* Главный вход. Возвращает тип воспроизведения, чтобы вызывающий
@@ -4422,12 +4546,13 @@ const player = {
     audio.src = this.urls[0];
     audio.load();
     this.startConnectTimer();
-    const attempt = audio.play();
-    if (attempt && attempt.catch) attempt.catch(() => this.tryNextUrl());
+    this.playAttempt(audio);
     return 'stream';
   },
 
   pause() {
+    clearTimeout(this._pendingTimer);
+    this._pendingTimer = null;
     if (this.audio && !this.audio.paused) this.audio.pause();
     this.clearStallTimer();
     this.clearConnectTimer();
@@ -4439,11 +4564,13 @@ const player = {
     /* У живого потока нет позиции: возвращаемся к эфиру, а не к паузе. */
     this.audio.load();
     this.startConnectTimer();
-    const attempt = this.audio.play();
-    if (attempt && attempt.catch) attempt.catch(() => this.tryNextUrl());
+    this.playAttempt(this.audio);
   },
 
   stop() {
+    this._attemptToken++;
+    clearTimeout(this._pendingTimer);
+    this._pendingTimer = null;
     this.clearProgressWatch();
     this.clearStallTimer();
     this.clearConnectTimer();
@@ -4468,14 +4595,12 @@ const player = {
     return !!(this.audio && !this.audio.paused && this.source);
   },
 
-  handleDeadStream() {
+  handleDeadStream(reason) {
     if (this._deadHandled) return;
     this._deadHandled = true;
     this.clearProgressWatch();
     this.clearStallTimer();
-    state.session.notice = COPY['session.status.switching'];
-    updateSessionNotice();
-    this.nextSource();
+    autoAdvance(reason);
   }
 };
 
@@ -4793,7 +4918,7 @@ function bindMediaSession() {
   };
   set('play', function () { player.resume(); });
   set('pause', function () { player.pause(); });
-  set('nexttrack', function () { if (state.session) nextSource(); });
+  set('nexttrack', function () { if (state.session) { player._switches = 0; nextSource(); } });
 }
 
 /* ============================================================
@@ -6029,7 +6154,7 @@ function renderSession(options) {
     class: 'session__status',
     id: 'sessionStatus',
     text: computeSessionStatus(source, session),
-    attrs: { style: 'color: var(--text-1)' }
+    attrs: { style: 'color: var(--text-primary)' }
   }));
 
   root.appendChild(el('div', { class: 'session__status-row' }, statusLine));
@@ -6257,11 +6382,75 @@ function nextSource() {
   session.switched = true;
   session.fallbackExternal = false;
   session.isPlaying = false;
-  session.autoSwitchAttempts = 0;
   startPlayback(SOURCE_BY_ID[nextId]);
   persistActiveSession();
   updateMediaSession();
   renderSession();
+}
+
+/* Перезапуск того же источника с первого адреса (после возврата сети). */
+function retrySameSource() {
+  if (!player.source) return;
+  startPlayback(player.source);
+  setSessionNotice(COPY['session.status.connecting']);
+}
+
+function setSessionNotice(text) {
+  if (!state.session) return;
+  state.session.notice = text;
+  updateSessionNotice();
+}
+
+/* Единая точка автоматического перехода: мёртвый звук, исчерпанные адреса,
+   обрыв при старте. Ручной выбор и 60 секунд игры счётчик не трогают. */
+function autoAdvance(reason) {
+  console.info('[autoAdvance] reason=' + reason);
+  const result = advanceOnce();
+  console.info('[autoAdvance] result=' + result + ' switches=' + player._switches + ' pending=' + !!player._pendingTimer);
+  return result;
+}
+
+function advanceOnce() {
+  const session = state.session;
+  if (!session || !player.source) return 'idle';
+
+  if (navigator.onLine === false) {
+    player.clearProgressWatch();
+    player.clearStallTimer();
+    setSessionNotice(COPY['session.status.offline']);
+    return 'offline';
+  }
+
+  /* Один сбой дают несколько сигналов подряд; пока переход или повтор ждёт таймер, остальные не считаем. */
+  if (player._pendingTimer) return 'waiting';
+  if (Date.now() - (player._onlineAt || 0) < 10000 && !player._onlineRetried) {
+    player._onlineRetried = true;
+    player.clearProgressWatch();
+    player.clearStallTimer();
+    setSessionNotice(COPY['session.status.connecting']);
+    player._pendingTimer = setTimeout(function () {
+      player._pendingTimer = null;
+      retrySameSource();
+    }, 3000);
+    return 'waiting';
+  }
+
+  player._switches = (player._switches || 0) + 1;
+  if (player._switches > CONFIG.maxSwitches) {
+    player.clearProgressWatch();
+    player.clearStallTimer();
+    session.fallbackExternal = true;
+    const failed = SOURCE_BY_ID[session.sourceId];
+    setSessionNotice(failed && failed.status === 'own' ? COPY['own.notPlayable'] : COPY['session.status.giveUp']);
+    return 'limit';
+  }
+
+  setSessionNotice(COPY['session.status.switching']);
+  player._pendingTimer = setTimeout(function () {
+    player._pendingTimer = null;
+    nextSource();
+  }, 700);
+  return 'advanced';
 }
 
 /* «Начинаю ошибаться» — понижение интенсивности режима. */
@@ -6280,7 +6469,6 @@ function showCorrection() {
       session.modeId = targetModeId;
       session.sourceId = CHAINS[targetModeId][0];
       session.switched = true;
-      session.autoSwitchAttempts = 0;
       startPlayback(SOURCE_BY_ID[session.sourceId]);
       persistActiveSession();
       updateMediaSession();
@@ -6299,7 +6487,6 @@ function showCorrection() {
     apply = function () {
       session.sourceId = calmest;
       session.switched = true;
-      session.autoSwitchAttempts = 0;
       startPlayback(SOURCE_BY_ID[calmest]);
       persistActiveSession();
       updateMediaSession();
@@ -6440,7 +6627,6 @@ function bindPlayerEvents() {
     if (!state.session) return;
     state.session.notice = '';
     state.session.isPlaying = true;
-    state.session.autoSwitchAttempts = 0;
     updateSessionNotice();
     updateSessionStatus();
   });
@@ -6454,48 +6640,9 @@ function bindPlayerEvents() {
      непроверенные источники — переходим к следующему сами, не спрашивая.
      Когда цепочка пройдена целиком — как раньше: предложение открыть
      страницу сервиса. */
-  player.on('sourceDead', function () {
-    const session = state.session;
-    if (!session) return;
-    const sessionId = session.id;
-    const chain = chainFor(session.modeId);
-    const currentIndex = chain.indexOf(session.sourceId);
-    const attempts = session.autoSwitchAttempts || 0;
-
-    if (currentIndex >= 0 && chain.length > 1 && attempts < chain.length - 1) {
-      const nextId = chain[(currentIndex + 1) % chain.length];
-      session.autoSwitchAttempts = attempts + 1;
-      session.isPlaying = false;
-      session.notice = COPY['session.status.switching'];
-      updateSessionNotice();
-
-      setTimeout(function () {
-        /* За время паузы могли завершить сессию или начать другую. */
-        if (!state.session || state.session.id !== sessionId) return;
-        state.session.sourceId = nextId;
-        state.session.switched = true;
-        startPlayback(SOURCE_BY_ID[nextId]);
-        persistActiveSession();
-        updateMediaSession();
-        renderSession();
-      }, 700);
-      return;
-    }
-
-    session.isPlaying = false;
-    /* Вся цепочка перепробована. */
-    session.fallbackExternal = true;
-    const failed = SOURCE_BY_ID[session.sourceId];
-    /* Формулировка сообщения зависит от типа источника. */
-    if (failed && failed.status === 'own') {
-      session.notice = COPY['own.notPlayable'];
-    } else if (failed && failed.play.kind === 'stream') {
-      /* Поток был в приложении, но перестал отвечать целиком. */
-      session.notice = COPY['session.streamDead'];
-    } else {
-      session.notice = COPY['session.openPage'];
-    }
-    renderSession();
+  player.on('sourceDead', function (reason) {
+    if (!state.session) return;
+    autoAdvance(reason || 'addresses-exhausted');
   });
 }
 
@@ -7465,21 +7612,6 @@ function renderMusic() {
      не говорит ничего. Постоянная строка, не подсказка с крестиком. */
   section.appendChild(el('p', { class: 'music__intro', text: COPY['music.intro'] }));
 
-  /* Строка перехода к режиму: 57 карточек листать неудобно. */
-  const jump = el('div', { class: 'chips-row music__jump no-print' });
-  for (const mode of MODES) {
-    jump.appendChild(el('button', {
-      class: 'chip',
-      type: 'button',
-      data: { action: 'jump-mode', value: mode.id }
-    }, [
-      meaningIcon(ICON_BY_MODE[mode.id]),
-      el('span', { class: 'dot dot--' + mode.id }),
-      el('span', { text: ' ' + mode.title })
-    ]));
-  }
-  section.appendChild(jump);
-
   /* Поиск: одно поле по названию, сервису и жанру. Без выпадашек. */
   const search = el('input', {
     class: 'note__input music__search',
@@ -7526,7 +7658,7 @@ function matchesFilters(source, filters) {
         if (!source.masksSpeech) return false;
         break;
       case 'focus':
-        if (!['focus', 'calm'].includes(source.modes.split(' ')[0])) return false;
+        if (!['focus', 'calm'].includes(source.modes[0])) return false;
         break;
       case 'noAds':
         if (source.flags.indexOf('ads') >= 0) return false;
@@ -7536,44 +7668,103 @@ function matchesFilters(source, filters) {
   return true;
 }
 
-/* Список источников: один единственный список с фильтрами. */
+/* Основной режим источника: первый в списке modes каталога;
+   нет его — первая цепочка режимов, где источник есть. */
+function primaryModeId(source) {
+  const first = (source.modes || [])[0];
+  if (MODE_BY_ID[first]) return first;
+  for (const mode of MODES) {
+    if ((CHAINS[mode.id] || []).indexOf(source.id) >= 0) return mode.id;
+  }
+  return null;
+}
+
+const MUSIC_FILTERS = [
+  { id: 'playsHere', copy: 'music.filter.playsHere' },
+  { id: 'noVocals', copy: 'music.filter.noVocals' },
+  { id: 'masking', copy: 'music.filter.masking' },
+  { id: 'focus', copy: 'music.filter.focus' },
+  { id: 'noAds', copy: 'music.filter.noAds' }
+];
+
+/* Список источников: блоки по основному режиму, каждый источник ровно один раз. */
 function renderMusicResults() {
   const host = document.getElementById('musicResults');
   if (!host) return;
   const query = state.ui.musicQuery || '';
   const filters = state.ui.musicFilters || [];
+  const active = !!(query.trim() || filters.length);
+  const oldRow = host.querySelector('.music__jump');
+  const pillScroll = oldRow ? oldRow.scrollLeft : 0;
   host.textContent = '';
+  musicSpy.current = null;
 
-  /* Фильтры музыки. */
-  const filterLabels = [
-    { id: 'playsHere', text: COPY['badge.playsHere'] || 'Играет здесь' },
-    { id: 'noVocals', text: COPY['badge.noVocals'] || 'Без слов' },
-    { id: 'masking', text: COPY['badge.masks'] || 'Глушит разговоры' },
-    { id: 'focus', text: COPY['mode.focus'] || 'Для фокуса' },
-    { id: 'noAds', text: 'Без рекламы' }
-  ];
-  const filterRow = el('div', { class: 'chips-row music__filters no-print' });
-  for (const f of filterLabels) {
-    const isActive = filters.indexOf(f.id) >= 0;
-    const btn = el('button', {
-      class: 'chip' + (isActive ? ' chip--active' : ''),
+  const ownAll = state.data.ownSources || [];
+  /* В каталоге есть строка, повторяющая id (rsj): показываем источник один раз. */
+  const seenIds = new Set();
+  const catalogAll = SOURCES.concat(CANDIDATES).filter(source => !seenIds.has(source.id) && seenIds.add(source.id));
+  const own = ownAll.filter(source => matchesQuery(source, query) && matchesFilters(source, filters));
+  const catalog = catalogAll.filter(source => matchesQuery(source, query) && matchesFilters(source, filters));
+  const total = own.length + catalog.length;
+
+  /* Группы: режимы в порядке MODES; пустые не показываем вместе с пилюлей. */
+  const groups = [];
+  for (const mode of MODES) {
+    const items = catalog.filter(source => primaryModeId(source) === mode.id);
+    if (items.length) groups.push({ id: mode.id, title: mode.title, items: items });
+  }
+  const orphans = catalog.filter(source => !primaryModeId(source));
+  if (orphans.length) groups.push({ id: 'other', title: COPY['music.other'], items: orphans });
+
+  /* Липкая панель: пилюли режимов. */
+  if (groups.length) {
+    const row = el('div', {
+      class: 'chips-row music__jump',
+      attrs: { role: 'navigation', 'aria-label': COPY['music.nav.label'] }
+    });
+    for (const group of groups) {
+      row.appendChild(el('button', {
+        class: 'chip chip--mode',
+        type: 'button',
+        data: { action: 'jump-mode', value: group.id }
+      }, [
+        el('span', { class: 'dot dot--' + (group.id === 'other' ? 'routine' : group.id) }),
+        el('span', { text: group.title })
+      ]));
+    }
+    host.appendChild(el('div', { class: 'music__nav no-print' }, [row]));
+    row.scrollLeft = pillScroll;
+  }
+
+  /* Фильтры. */
+  const filterRow = el('div', {
+    class: 'chips-row music__filters no-print',
+    attrs: { role: 'group', 'aria-label': COPY['music.filters.label'] }
+  });
+  for (const f of MUSIC_FILTERS) {
+    filterRow.appendChild(el('button', {
+      class: 'chip',
       type: 'button',
       data: { action: 'toggle-music-filter', value: f.id },
-      text: f.text
-    });
-    filterRow.appendChild(btn);
+      attrs: { 'aria-pressed': filters.indexOf(f.id) >= 0 ? 'true' : 'false' },
+      text: COPY[f.copy]
+    }));
   }
   host.appendChild(filterRow);
 
-  /* Фильтруем источники по запросу и выбранным фильтрам. */
-  const own = (state.data.ownSources || []).filter(source => matchesQuery(source, query) && matchesFilters(source, filters));
-  const catalog = SOURCES.concat(CANDIDATES).filter(source => matchesQuery(source, query) && matchesFilters(source, filters));
-
-  /* Счётчик. */
-  const total = own.length + catalog.length;
-  if (query.trim() || filters.length) {
-    host.appendChild(el('p', { class: 'small', text: COPY['music.found'] + ' ' + total }));
+  /* Строка «Показано N из M» и «Сбросить». */
+  const status = el('div', { class: 'music__status', attrs: { role: 'status' } }, [
+    el('span', { text: COPY['music.shown'] + ' ' + total + ' ' + COPY['music.of'] + ' ' + (ownAll.length + catalogAll.length) })
+  ]);
+  if (active) {
+    status.appendChild(el('button', {
+      class: 'music__reset',
+      type: 'button',
+      text: COPY['music.reset'],
+      data: { action: 'reset-music-filters' }
+    }));
   }
+  host.appendChild(status);
 
   if (own.length) {
     const list = el('div', { class: 'cards' });
@@ -7584,50 +7775,96 @@ function renderMusicResults() {
     ]));
   }
 
-  /* Один список всех источников без повторов. */
-  const list = el('div', { class: 'cards' });
-  if (own.length || catalog.length) {
-    for (const source of catalog) list.appendChild(sourceCard(source));
-  } else if (query.trim() || filters.length) {
-    list.appendChild(el('p', { class: 'small', text: COPY['music.nothing'] }));
-  }
-
-  if (list.children.length > 0 || (query.trim() || filters.length)) {
-    host.appendChild(el('div', { class: 'section' }, [
-      el('h2', { class: 'section__title', text: COPY['nav.music'] }),
+  for (const group of groups) {
+    const list = el('div', { class: 'cards' });
+    for (const source of group.items) list.appendChild(sourceCard(source));
+    host.appendChild(el('section', {
+      class: 'music__group',
+      attrs: { id: 'mode-' + group.id, 'data-mode': group.id }
+    }, [
+      el('h2', { class: 'music__group-title' }, [
+        el('span', { class: 'dot dot--' + (group.id === 'other' ? 'routine' : group.id) }),
+        el('span', { text: group.title }),
+        el('span', { class: 'music__group-count', text: String(group.items.length) })
+      ]),
       list
     ]));
   }
 
-  /* Если нет фильтра и нет поиска, показываем строку перехода по режимам. */
-  if (!query.trim() && !filters.length) {
-    const jump = el('div', { class: 'chips-row music__jump' });
-    for (const mode of MODES) {
-      jump.appendChild(el('button', {
-        class: 'chip',
-        type: 'button',
-        data: { action: 'jump-mode', value: mode.id }
-      }, [
-        meaningIcon(ICON_BY_MODE[mode.id]),
-        el('span', { class: 'dot dot--' + mode.id }),
-        el('span', { text: ' ' + mode.title })
-      ]));
-    }
-    host.appendChild(jump);
+  if (!total && active) {
+    host.appendChild(el('div', { class: 'music__empty' }, [
+      el('p', { text: COPY['music.nothing'] }),
+      el('button', { class: 'music__reset', type: 'button', text: COPY['music.reset'], data: { action: 'reset-music-filters' } })
+    ]));
+  }
 
-    /* Раздел "Разобраться" и кнопка "Добавить" видны только без фильтра и поиска. */
+  /* Раздел «Разобраться» и кнопка «Добавить» видны только без фильтра и поиска. */
+  if (!active) {
     host.appendChild(renderDiscover());
-
-    const addButton = el('div', { class: 'own__add' }, [
+    host.appendChild(el('div', { class: 'own__add' }, [
       el('button', {
         class: 'btn btn--secondary',
         type: 'button',
         text: COPY['own.add'],
         data: { action: 'own-add' }
       })
-    ]);
-    host.appendChild(addButton);
+    ]));
   }
+
+  updateMusicSpy();
+}
+
+function resetMusicFilters() {
+  state.ui.musicFilters = [];
+  state.ui.musicQuery = '';
+  const field = document.querySelector('.music__search');
+  if (field) field.value = '';
+  renderMusicResults();
+}
+
+/* Scroll-spy: какой режим сейчас у верхнего края (панель ~70 px). */
+const musicSpy = { raf: false, lock: false, idleTimer: null, current: null };
+
+function setMusicCurrent(modeId, center) {
+  const row = document.querySelector('#musicResults .music__jump');
+  if (!row) return;
+  let currentBtn = null;
+  for (const btn of row.querySelectorAll('button')) {
+    if (btn.dataset.value === modeId) { btn.setAttribute('aria-current', 'true'); currentBtn = btn; }
+    else btn.removeAttribute('aria-current');
+  }
+  musicSpy.current = modeId;
+  if (center && currentBtn) {
+    /* Центруем только внутри строки, страницу не двигаем. */
+    const rr = row.getBoundingClientRect();
+    const br = currentBtn.getBoundingClientRect();
+    row.scrollLeft += (br.left + br.width / 2) - (rr.left + rr.width / 2);
+  }
+}
+
+function updateMusicSpy() {
+  musicSpy.raf = false;
+  const groups = document.querySelectorAll('#musicResults .music__group');
+  if (!groups.length) return;
+  let current = groups[0].dataset.mode;
+  for (const group of groups) {
+    if (group.getBoundingClientRect().top <= 78) current = group.dataset.mode;
+    else break;
+  }
+  if (current !== musicSpy.current) setMusicCurrent(current, true);
+}
+
+function onMusicScroll() {
+  if (!document.getElementById('musicResults')) return;
+  if (musicSpy.lock) {
+    /* Идёт прокрутка по нажатию пилюли: пилюля уже выбрана, не мигаем. */
+    clearTimeout(musicSpy.idleTimer);
+    musicSpy.idleTimer = setTimeout(function () { musicSpy.lock = false; updateMusicSpy(); }, 160);
+    return;
+  }
+  if (musicSpy.raf) return;
+  musicSpy.raf = true;
+  requestAnimationFrame(updateMusicSpy);
 }
 
 /* ============================================================
@@ -9150,12 +9387,15 @@ function renderCalibrationProfile(profile) {
 
 /* Переход к блоку режима внутри «Музыки». */
 function jumpToMode(modeId) {
-  state.ui.musicQuery = '';
-  const field = document.querySelector('.music__search');
-  if (field) field.value = '';
-  renderMusicResults();
   const anchor = document.getElementById('mode-' + modeId);
-  if (anchor) anchor.scrollIntoView({ block: 'start' });
+  if (!anchor) return;
+  /* 70 px — высота липкой панели с пилюлями. */
+  const top = anchor.getBoundingClientRect().top + (window.scrollY || 0) - 70;
+  musicSpy.lock = true;
+  setMusicCurrent(modeId, true);
+  scrollWindowTo(top);
+  clearTimeout(musicSpy.idleTimer);
+  musicSpy.idleTimer = setTimeout(function () { musicSpy.lock = false; updateMusicSpy(); }, 1500);
 }
 
 /* Переход к нужному блоку, а не в раздел целиком. */
@@ -9398,7 +9638,7 @@ function handleAction(action, dataset) {
   switch (action) {
     case 'start':            startSession(); return;
     case 'session-pause':    togglePause(); return;
-    case 'session-next':     nextSource(); return;
+    case 'session-next':     player._switches = 0; nextSource(); return;
     case 'session-finish':   finishSession({}); return;
     case 'collapse-session': history.back(); return;
     case 'session-mistakes': showCorrection(); return;
@@ -9415,6 +9655,7 @@ function handleAction(action, dataset) {
     case 'profiles':         showProfilesPanel(); return;
     case 'toggle-profile':   toggleProfile(dataset.value); return;
     case 'toggle-music-filter': toggleMusicFilter(dataset.value); return;
+    case 'reset-music-filters': resetMusicFilters(); return;
     case 'go-music':         location.hash = '#music'; return;
     case 'go-more':          location.hash = '#more'; return;
     case 'go-more-screen':   location.hash = '#more/' + dataset.target; return;
@@ -9477,7 +9718,8 @@ function updateScrollToTopVisibility() {
 
   const threshold = window.innerHeight * 1.5;
   const scrolled = window.scrollY || window.pageYOffset || 0;
-  btn.classList.toggle('hidden', scrolled <= threshold);
+  /* На экране сессии страница под оверлеем не видна: кнопка там прокручивала бы её вслепую. */
+  btn.classList.toggle('hidden', scrolled <= threshold || state.view === 'session');
 }
 
 function handleScrollToTopScroll() {
@@ -9504,7 +9746,7 @@ function scrollWindowTo(top) {
   setTimeout(function () {
     const now = window.scrollY || window.pageYOffset || 0;
     if (Math.abs(now - start) < 2) window.scrollTo(0, target);
-  }, 250);
+  }, 350);
 }
 
 function bindScrollToTop() {
@@ -9516,6 +9758,7 @@ function bindScrollToTop() {
   });
 
   window.addEventListener('scroll', handleScrollToTopScroll, { passive: true });
+  window.addEventListener('scroll', onMusicScroll, { passive: true });
   updateScrollToTopVisibility();
 }
 
@@ -9657,6 +9900,24 @@ function bindEvents() {
     saveState({ immediate: true });
   });
 
+  /* Сеть пропала — ждём, не перебираем станции. */
+  window.addEventListener('offline', function () {
+    player.clearProgressWatch();
+    player.clearStallTimer();
+    if (state.session) {
+      state.session.notice = COPY['session.status.offline'];
+      updateSessionNotice();
+    }
+  });
+
+  /* Сеть вернулась — пробуем текущий источник снова. */
+  window.addEventListener('online', function () {
+    if (!player.source) return;
+    player._onlineAt = Date.now();
+    player._onlineRetried = false;
+    retrySameSource();
+  });
+
   /* Системная тема сменилась — отражаем, если выбран режим «системная». */
   if (window.matchMedia) {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -9693,6 +9954,7 @@ function readHash(options) {
     state.view = 'session';
     renderSession({ focus: entering });
     updateMiniPanel();
+    updateScrollToTopVisibility();
     return;
   }
 
@@ -9700,7 +9962,7 @@ function readHash(options) {
   const wasInSession = state.view === 'session';
   state.view = 'app';
   hideSessionScreen();
-  if (wasInSession) setShellInert(false);
+  if (wasInSession) { setShellInert(false); updateScrollToTopVisibility(); }
 
   /* Хеш сессии без самой сессии — возвращаемся на «Сегодня». */
   if (id === 'session') { location.replace('#today'); return; }
