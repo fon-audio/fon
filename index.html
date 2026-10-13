@@ -1405,7 +1405,7 @@ body.has-mini .scroll-to-top {
 }
 .more__row:hover { background: var(--surface-2); }
 .more__row + .more__row::before { content: ''; position: absolute; left: 16px; right: 0; top: 0; height: 1px; background: var(--line); }
-.more__row--split { justify-content: space-between; cursor: default; }
+.more__row--split { justify-content: space-between; cursor: default; padding-left: 0; padding-right: 0; }
 .more__row--split:hover { background: none; }
 .more__row--danger { color: var(--danger); }
 .more__row--danger:hover { background: var(--surface-2); }
@@ -1899,7 +1899,7 @@ function safeStep(name, fn) {
 /* ============================================================
    ВЕРСИЯ СБОРКИ
    ============================================================ */
-const APP_VERSION = '1.0.36';
+const APP_VERSION = '1.0.37';
 
 /* ============================================================
    БЛОК: КОНФИГ
@@ -4478,6 +4478,11 @@ const player = {
          и управление с наушников. */
       document.body.appendChild(audio);
       this.audio = audio;
+      /* Кнопка на экране блокировки следует за настоящим звуком. Эти
+         слушатели живут с элементом, stop() их не снимает. */
+      ['playing', 'pause', 'ended'].forEach(function (name) {
+        audio.addEventListener(name, syncMediaPlaybackState);
+      });
     }
     this.audio.addEventListener('playing', this.onAudioPlaying);
     this.audio.addEventListener('waiting', this.onAudioWaiting);
@@ -4995,6 +5000,78 @@ function mediaSessionAvailable() {
   return typeof navigator !== 'undefined' && 'mediaSession' in navigator;
 }
 
+/* --- Обложка экрана блокировки --------------------------------
+   Рисуется из canvas один раз на режим и кешируется. Тональный фон
+   тёмной темы (--surface), 50 делений цветом режима (--mode-<id>
+   тёмной темы), без текста, градиентов и свечения. Статичная.
+   Если canvas недоступен, обложки нет, всё остальное работает. */
+/* ARTWORK-BEGIN */
+const MEDIA_ART_SIZES = [96, 256, 512];
+const MEDIA_ART_GROUND = '#1D1D1F';
+const MEDIA_ART_COLOR = {
+  focus: '#5B7FA6', flow: '#6E8F6B', energy: '#C08A4A',
+  ideas: '#8A6EA6', calm: '#6E9A94', routine: '#8E8E93'
+};
+const mediaArtCache = {};
+
+function drawModeArtwork(canvas, size, color) {
+  const ctx = canvas.getContext && canvas.getContext('2d');
+  if (!ctx) return false;
+  canvas.width = size;
+  canvas.height = size;
+  ctx.fillStyle = MEDIA_ART_GROUND;
+  ctx.fillRect(0, 0, size, size);
+  ctx.save();
+  ctx.scale(size / 100, size / 100);
+  ctx.strokeStyle = color;
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 50; i++) {
+    const major = i % 5 === 0;
+    const angle = (i / 50) * Math.PI * 2 - Math.PI / 2;
+    const inner = major ? 29 : 33;
+    ctx.globalAlpha = major ? 1 : 0.6;
+    ctx.lineWidth = major ? 3.2 : 2.2;
+    ctx.beginPath();
+    ctx.moveTo(50 + Math.cos(angle) * 40, 50 + Math.sin(angle) * 40);
+    ctx.lineTo(50 + Math.cos(angle) * inner, 50 + Math.sin(angle) * inner);
+    ctx.stroke();
+  }
+  ctx.restore();
+  return true;
+}
+
+/* Список artwork для MediaMetadata или пустой список, если рисовать нечем. */
+function buildModeArtwork(modeId) {
+  if (Object.prototype.hasOwnProperty.call(mediaArtCache, modeId)) return mediaArtCache[modeId];
+  let list = [];
+  try {
+    const color = MEDIA_ART_COLOR[modeId];
+    if (color && typeof document !== 'undefined') {
+      for (const size of MEDIA_ART_SIZES) {
+        const canvas = document.createElement('canvas');
+        if (!drawModeArtwork(canvas, size, color)) { list = []; break; }
+        const url = canvas.toDataURL('image/png');
+        if (!url || url.indexOf('data:image/png') !== 0) { list = []; break; }
+        list.push({ src: url, sizes: size + 'x' + size, type: 'image/png' });
+      }
+    }
+  } catch (e) { list = []; }
+  mediaArtCache[modeId] = list;
+  return list;
+}
+/* ARTWORK-END */
+
+/* Состояние кнопки на экране блокировки берём у настоящего <audio>. */
+function syncMediaPlaybackState() {
+  if (!mediaSessionAvailable()) return;
+  try {
+    if (!state.session) { navigator.mediaSession.playbackState = 'none'; return; }
+    const audio = player.audio;
+    const isPlaying = !!(audio && !audio.paused && player.source);
+    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+  } catch (e) { /* не критично */ }
+}
+
 function updateMediaSession() {
   if (!mediaSessionAvailable()) return;
   const session = state.session;
@@ -5005,21 +5082,15 @@ function updateMediaSession() {
   }
   const source = SOURCE_BY_ID[session.sourceId];
   const mode = MODE_BY_ID[session.modeId];
-  const metaTask = session.taskId ? TASK_BY_ID[session.taskId] : null;
   try {
     navigator.mediaSession.metadata = new window.MediaMetadata({
       title: source ? source.title : '',
-      artist: mode ? mode.title : (metaTask ? metaTask.title : ''),
+      artist: mode ? COPY['app.title'] + ' · ' + mode.title : COPY['app.title'],
       album: COPY['app.title'],
-      artwork: [
-        { src: './icon-192.png', sizes: '192x192', type: 'image/png' },
-        { src: './icon-512.png', sizes: '512x512', type: 'image/png' }
-      ]
+      artwork: buildModeArtwork(session.modeId)
     });
   } catch (e) { /* MediaMetadata может отсутствовать — не ломаемся */ }
-  const audio = player.audio;
-  const isPlaying = audio && !audio.paused && player.source;
-  navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+  syncMediaPlaybackState();
 }
 
 function bindMediaSession() {
