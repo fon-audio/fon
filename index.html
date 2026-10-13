@@ -1184,14 +1184,52 @@ body.has-mini .scroll-to-top {
   inset: 0;
   z-index: 50;
   display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: var(--scrim);
+}
+/* Нижняя шторка, не диалог: ручка, закрывается жестом и по Escape. */
+.result__sheet {
+  width: 100%;
+  max-width: 520px;
+  max-height: 92vh;
+  overflow-y: auto;
+  display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: var(--sp-5);
-  padding: var(--sp-6) var(--sp-4) calc(var(--sp-6) + env(safe-area-inset-bottom));
-  background: var(--bg);
+  gap: var(--sp-4);
+  padding: var(--sp-5) var(--sp-4) calc(var(--sp-5) + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: var(--r-card) var(--r-card) 0 0;
+  box-shadow: var(--e3);
   text-align: center;
-  overflow-y: auto;
+  touch-action: pan-y;
+  animation: sheet-in var(--dur-slow) var(--ease);
+}
+.result__sheet::before {
+  content: '';
+  display: block;
+  flex: none;
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line-strong);
+}
+.result__sheet .result__ratings { width: 100%; flex-wrap: nowrap; gap: var(--sp-2); }
+.result__sheet .rating { flex: 1 1 0; min-width: 0; padding: var(--sp-3) var(--sp-2); }
+.result__station { font-size: 15px; color: var(--text-2); margin: calc(var(--sp-2) * -1) 0 0; }
+.result__next { width: 100%; display: flex; flex-direction: column; gap: var(--sp-2); text-align: left; }
+.result__next-label { font-size: 14px; color: var(--text-2); }
+.result__actions { width: 100%; display: flex; flex-direction: column; align-items: stretch; gap: var(--sp-2); }
+.result__actions .btn--primary { width: 100%; }
+.return-point { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-3); }
+.return-point__text { font-size: 14px; line-height: 1.5; color: var(--text-2); min-width: 0; overflow-wrap: anywhere; }
+.return-point__label { color: var(--text-3); }
+.return-point__clear { flex: none; padding: var(--sp-2) var(--sp-2); }
+@media (prefers-reduced-motion: reduce) {
+  .result__sheet { animation: none; }
 }
 .result__title { font-size: 22px; line-height: 1.3; font-weight: 600; }
 .result__duration { font-size: clamp(28px, 6vw, 40px); line-height: 1.1; font-weight: 300; font-variant-numeric: tabular-nums; }
@@ -1899,7 +1937,7 @@ function safeStep(name, fn) {
 /* ============================================================
    ВЕРСИЯ СБОРКИ
    ============================================================ */
-const APP_VERSION = '1.0.37';
+const APP_VERSION = '1.0.38';
 
 /* ============================================================
    БЛОК: КОНФИГ
@@ -3830,6 +3868,15 @@ const COPY = {
   'result.no': 'Нет',
   'result.savePreset': 'Сохранить как пресет',
   'result.close': 'Закрыть',
+  'result.next': 'С чего начать в следующий раз?',
+  'result.save': 'Сохранить',
+  'result.skip': 'Пропустить',
+  'return.label': 'Остановились на:',
+  'return.remove': 'Убрать',
+  'settings.fade': 'Плавное начало и конец',
+  'settings.vibrate': 'Вибрация в конце сессии',
+  'settings.on': 'Включено',
+  'settings.off': 'Выключено',
 
   'correct.title': 'Похоже, текущий фон слишком активный.',
   'correct.apply': 'Переключить',
@@ -4130,7 +4177,10 @@ function defaultData() {
       rhythm: null,
       rhythmOffDay: '',
       /* Вернуть погашенные вопросы можно одной строкой в настройках. */
-      askOptional: true
+      askOptional: true,
+      /* «Плавное начало и конец» и «Вибрация в конце сессии»: выключены. */
+      fade: false,
+      vibrate: false
     },
     durations: {},
     presets: [],
@@ -4235,6 +4285,8 @@ function normalizeData(raw) {
       }
     }
     if (raw.settings.askOptional === false) result.settings.askOptional = false;
+    if (raw.settings.fade === true) result.settings.fade = true;
+    if (raw.settings.vibrate === true) result.settings.vibrate = true;
     if (raw.settings.rhythm && typeof raw.settings.rhythm === 'object') {
       const base = defaultRhythm();
       const incoming = raw.settings.rhythm;
@@ -4494,6 +4546,10 @@ const player = {
 
   onAudioPlaying: function(e) {
     if (player.audio && player.audio === e.target) {
+      if (player._fadeInPending) {
+        player._fadeInPending = false;
+        player.softFade(state.data.settings.volume, 1500);
+      }
       player._hasPlayed = true;
       player.clearStallTimer();
       player.clearConnectTimer();
@@ -4659,7 +4715,12 @@ const player = {
     this.urlIndex = 0;
 
     const audio = this.ensureAudio();
+    this.cancelSoftFade();
+    this._pausing = false;
     audio.volume = state.data.settings.volume;
+    /* Плавное начало: стартуем с нуля, громкость растёт, когда пошёл звук. */
+    this._fadeInPending = state.data.settings.fade === true;
+    if (this._fadeInPending) audio.volume = 0;
     audio.src = this.urls[0];
     audio.load();
     this.startConnectTimer();
@@ -4678,6 +4739,17 @@ const player = {
 
   resume() {
     if (!this.audio || !this.source || this.source.play.kind !== 'stream') return;
+    /* Нажали «продолжить», пока звук ещё затухал: пауза так и не случилась. */
+    if (this._pausing) {
+      this._pausing = false;
+      this.softFade(state.data.settings.volume, 500);
+      return;
+    }
+    if (state.data.settings.fade === true) {
+      this.cancelSoftFade();
+      this.audio.volume = 0;
+      this._fadeInPending = true;
+    }
     /* У живого потока нет позиции: возвращаемся к эфиру, а не к паузе. */
     this.audio.load();
     this.startConnectTimer();
@@ -4686,6 +4758,9 @@ const player = {
 
   stop() {
     this._attemptToken++;
+    this.cancelSoftFade();
+    this._fadeInPending = false;
+    this._pausing = false;
     clearTimeout(this._pendingTimer);
     this._pendingTimer = null;
     this.clearProgressWatch();
@@ -4704,8 +4779,55 @@ const player = {
   setVolume(value) {
     const volume = Math.min(1, Math.max(0, value));
     state.data.settings.volume = volume;
+    this.cancelSoftFade();
     if (this.audio) this.audio.volume = volume;
     saveState();
+  },
+
+  /* Плавное начало и конец (выключено по умолчанию). Шаг через setInterval
+     ~50 мс, а не requestAnimationFrame: на заблокированном экране rAF стоит.
+     Время считаем по Date.now(). Громкость <audio> на iOS может не меняться,
+     это не дефект. Сам звук при этом идёт: слежение за «мёртвым звуком»
+     смотрит на currentTime, а не на громкость. */
+  softFadeTimer: null,
+  _fadeInPending: false,
+  _pausing: false,
+
+  cancelSoftFade() {
+    if (this.softFadeTimer) { clearInterval(this.softFadeTimer); this.softFadeTimer = null; }
+  },
+
+  softFade(to, ms, done) {
+    this.cancelSoftFade();
+    const audio = this.audio;
+    if (!audio) { if (done) done(); return; }
+    const from = audio.volume;
+    const start = Date.now();
+    this.softFadeTimer = setInterval(function () {
+      const share = Math.min(1, (Date.now() - start) / ms);
+      audio.volume = Math.max(0, Math.min(1, from + (to - from) * share));
+      if (share >= 1) {
+        player.cancelSoftFade();
+        if (done) done();
+      }
+    }, 50);
+  },
+
+  /* Пауза по кнопке: 1 с затухания, потом настоящая пауза. */
+  pauseSoft(ms) {
+    if (!this.audio || this.audio.paused) { this.pause(); return; }
+    this._pausing = true;
+    this.softFade(0, ms, function () {
+      player._pausing = false;
+      player.pause();
+      if (player.audio) player.audio.volume = state.data.settings.volume;
+    });
+  },
+
+  /* Конец сессии: 3 с затухания, потом stop(). Новый play() прерывает затухание. */
+  stopSoft(ms) {
+    if (!this.audio || this.audio.paused) { this.stop(); return; }
+    this.softFade(0, ms, function () { player.stop(); });
   },
 
   isPlaying() {
@@ -6109,6 +6231,17 @@ function startSessionAutoCloseTimer() {
   }, SESSION_MAX_DURATION_MS);
 }
 
+/* Один короткий импульс, когда вышло запланированное время. Выключено по
+   умолчанию и существует только там, где есть navigator.vibrate. */
+function vibrationAvailable() {
+  return typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function';
+}
+
+function vibrateAtEnd() {
+  if (state.data.settings.vibrate !== true || !vibrationAvailable()) return;
+  try { navigator.vibrate(15); } catch (e) { /* не критично */ }
+}
+
 /* Остановка таймера автоматического закрытия. */
 function stopSessionAutoCloseTimer() {
   if (sessionAutoCloseTimer) {
@@ -6137,6 +6270,7 @@ function startSession(options) {
 
   const rec = opts.rec || state.today.rec || currentRecommendation();
   if (!rec) return;
+  clearReturnPoint();
   /* Сессия началась — прокрутка главного экрана больше не нужна. */
   forgetTodayScroll();
   const source = SOURCE_BY_ID[rec.sourceId];
@@ -6582,6 +6716,7 @@ function updateTimerDisplay() {
     const left = session.plannedMinutes * 60000 - sessionElapsedMs();
     if (left <= 0) {
       session.timeUp = true;
+      vibrateAtEnd();
       persistActiveSession();
       renderSession();
     }
@@ -6624,7 +6759,8 @@ function togglePause() {
   } else {
     session.pausedAt = Date.now();
     session.isPlaying = false;
-    player.pause();
+    if (state.data.settings.fade === true) player.pauseSoft(1000);
+    else player.pause();
   }
   persistActiveSession();
   updateMediaSession();
@@ -6796,7 +6932,8 @@ function finishSession(options) {
 
   state.session = null;
   storage.remove(CONFIG.sessionKey);
-  player.stop();
+  if (state.data.settings.fade === true && player.isPlaying()) player.stopSoft(3000);
+  else player.stop();
   updateMediaSession();
   saveState({ immediate: true });
   stopTick();
@@ -7097,19 +7234,28 @@ function renderResult(options) {
   root.classList.remove('hidden');
   setShellInert(true);
 
+  /* Шторка: станция, длительность, оценка, поле «С чего начать». */
+  const sheet = el('div', {
+    class: 'result__sheet',
+    attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'resultTitle' }
+  });
+
   const title = el('h2', {
     class: 'result__title',
     text: state.result.timeUp ? COPY['session.timeUp'] : COPY['result.title'],
-    attrs: { tabindex: '-1' }
+    attrs: { tabindex: '-1', id: 'resultTitle' }
   });
-  root.appendChild(title);
+  sheet.appendChild(title);
 
-  root.appendChild(el('p', {
+  const source = ANY_SOURCE_BY_ID[record.sourceId];
+  if (source) sheet.appendChild(el('p', { class: 'result__station', text: source.title }));
+
+  sheet.appendChild(el('p', {
     class: 'result__duration',
     text: formatSessionDuration(record.actualMinutes)
   }));
 
-  root.appendChild(el('p', { class: 'result__question', text: COPY['result.question'] }));
+  sheet.appendChild(el('p', { class: 'result__question', text: COPY['result.question'] }));
 
   const ratings = el('div', { class: 'result__ratings' });
   for (const item of RATINGS) {
@@ -7123,7 +7269,7 @@ function renderResult(options) {
       el('span', { class: 'rating__label', text: COPY[item.label] })
     ]));
   }
-  root.appendChild(ratings);
+  sheet.appendChild(ratings);
 
   /* Второй вопрос — необязательный и только после оценки. */
   if (record.rating !== null && record.rating !== undefined) {
@@ -7143,32 +7289,89 @@ function renderResult(options) {
         attrs: { 'aria-pressed': record.manyErrors === option.flag ? 'true' : 'false' }
       }));
     }
-    root.appendChild(errors);
+    sheet.appendChild(errors);
   }
 
-  const footer = el('div', { class: 'result__footer' });
+  /* Точка возврата: одна необязательная строка до 140 знаков.
+     Набранное хранится в state.result, чтобы пережить перерисовку. */
+  if (state.result.returnText === undefined) state.result.returnText = record.stopNote || '';
+  const nextInput = el('input', {
+    class: 'note__input',
+    attrs: {
+      type: 'text',
+      id: 'resultNext',
+      maxlength: String(RETURN_POINT_MAX_LENGTH),
+      value: state.result.returnText,
+      'aria-label': COPY['result.next']
+    }
+  });
+  nextInput.addEventListener('input', function () { state.result.returnText = nextInput.value; });
+  nextInput.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') { event.preventDefault(); saveResult(); }
+  });
+  sheet.appendChild(el('div', { class: 'result__next' }, [
+    el('label', { class: 'result__next-label', text: COPY['result.next'], attrs: { for: 'resultNext' } }),
+    nextInput
+  ]));
+
+  const actions = el('div', { class: 'result__actions' });
+  actions.appendChild(el('button', {
+    class: 'btn btn--primary',
+    type: 'button',
+    text: COPY['result.save'],
+    data: { action: 'save-result' }
+  }));
+  actions.appendChild(el('button', {
+    class: 'btn btn--ghost',
+    type: 'button',
+    text: COPY['result.skip'],
+    data: { action: 'close-result' }
+  }));
   if (state.result.presetSaved) {
-    footer.appendChild(el('p', { class: 'small', text: COPY['preset.saved'] }));
+    actions.appendChild(el('p', { class: 'small', text: COPY['preset.saved'] }));
   } else {
-    footer.appendChild(el('button', {
-      class: 'btn btn--secondary',
+    actions.appendChild(el('button', {
+      class: 'btn btn--ghost',
       type: 'button',
       text: COPY['result.savePreset'],
       data: { action: 'save-preset' }
     }));
   }
-  footer.appendChild(el('button', {
-    class: 'btn btn--ghost',
-    type: 'button',
-    text: COPY['result.close'],
-    data: { action: 'close-result' }
-  }));
-  root.appendChild(footer);
+  sheet.appendChild(actions);
 
-  /* Фокус переносим только при появлении экрана: иначе он убегает
+  root.appendChild(sheet);
+
+  /* Закрытие без сохранения: касание затемнения и смахивание шторки вниз. */
+  root.onclick = function (event) { if (event.target === root) closeResult(); };
+  bindResultSwipe(sheet);
+
+  /* Фокус переносим только при появлении шторки: иначе он убегает
      с кнопки, которую человек только что нажал. */
   if (opts.focus) title.focus();
   else restoreFocusKey(focusKey);
+}
+
+/* Смахивание шторки итога вниз = «Пропустить». */
+function bindResultSwipe(sheet) {
+  let startY = null;
+  let shift = 0;
+  sheet.addEventListener('touchstart', function (event) {
+    if (event.touches.length !== 1 || sheet.scrollTop > 0) { startY = null; return; }
+    startY = event.touches[0].clientY;
+    shift = 0;
+  }, { passive: true });
+  sheet.addEventListener('touchmove', function (event) {
+    if (startY === null) return;
+    shift = Math.max(0, event.touches[0].clientY - startY);
+    sheet.style.transform = 'translateY(' + shift + 'px)';
+  }, { passive: true });
+  sheet.addEventListener('touchend', function () {
+    if (startY === null) return;
+    const far = shift > 80;
+    startY = null;
+    sheet.style.transform = '';
+    if (far) closeResult();
+  });
 }
 
 function rateSession(value) {
@@ -7214,16 +7417,34 @@ function savePresetFromResult() {
   renderResult();
 }
 
-function closeResult() {
-  /* Закрыл, не оценив — это отказ. Оценил — счётчик не трогаем. */
+/* «Сохранить»: строка уходит в запись сессии и в точку возврата. */
+function saveResult() {
   const record = findSession(state.result && state.result.recordId);
-  if (record && (record.rating === null || record.rating === undefined)) noteDismiss('rating');
+  if (!record) { closeResult(); return; }
+  const text = String(state.result.returnText || '').trim().slice(0, RETURN_POINT_MAX_LENGTH);
+  if (text) {
+    record.stopNote = text;
+    writeReturnPoint(text, record.modeId);
+    saveState({ immediate: true });
+  }
+  /* Если человек что-то ответил (оценку или строку), это не отказ. */
+  closeResult({ answered: !!text });
+}
+
+function closeResult(options) {
+  const opts = options || {};
+  /* Закрыл, не ответив, — это отказ. Оценил или написал строку — счётчик не трогаем. */
+  const record = findSession(state.result && state.result.recordId);
+  if (record && !opts.answered && (record.rating === null || record.rating === undefined)) noteDismiss('rating');
   state.result = null;
   const root = document.getElementById('resultRoot');
+  root.onclick = null;
   root.classList.add('hidden');
   root.textContent = '';
   setShellInert(false);
   renderScreen({ moveFocus: true });
+  /* Полоса «Есть новая версия» ждала закрытия шторки. Автоперезагрузки нет. */
+  renderUpdateBar();
 }
 
 /* ============================================================
@@ -7492,6 +7713,10 @@ function renderLastSession() {
 function renderToday() {
   const section = screenShell(COPY['today.question'], { big: true });
 
+  /* Точка возврата: одна строка над заголовком, только если запись есть. */
+  const returnLine = renderReturnPointLine();
+  if (returnLine) section.insertBefore(returnLine, section.firstChild);
+
   const tomorrow = renderTomorrowCard();
   if (tomorrow) section.appendChild(tomorrow);
 
@@ -7595,6 +7820,55 @@ function renderTomorrowCard() {
     saveState();
   }
   return card;
+}
+
+/* --- Точка возврата ----------------------------------------------
+   Одна запись в localStorage: {text, ts, mode}. Показывается строкой над
+   заголовком «Сейчас», пока ей не больше 7 дней. Убирается кнопкой «Убрать»
+   или началом новой сессии. Всё в try/catch через storage. */
+const RETURN_POINT_KEY = 'fon.returnPoint';
+const RETURN_POINT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const RETURN_POINT_MAX_LENGTH = 140;
+
+function readReturnPoint() {
+  try {
+    const raw = storage.read(RETURN_POINT_KEY);
+    if (!raw) return null;
+    const point = JSON.parse(raw);
+    if (!point || typeof point.text !== 'string' || typeof point.ts !== 'number') return null;
+    if (!point.text.trim()) return null;
+    if (Date.now() - point.ts > RETURN_POINT_MAX_AGE_MS) return null;
+    return point;
+  } catch (e) { return null; }
+}
+
+function writeReturnPoint(text, modeId) {
+  const clean = String(text || '').trim().slice(0, RETURN_POINT_MAX_LENGTH);
+  if (!clean) return false;
+  try {
+    return storage.write(RETURN_POINT_KEY, JSON.stringify({ text: clean, ts: Date.now(), mode: modeId || null }));
+  } catch (e) { return false; }
+}
+
+function clearReturnPoint() {
+  try { storage.remove(RETURN_POINT_KEY); } catch (e) { /* не критично */ }
+}
+
+function renderReturnPointLine() {
+  const point = readReturnPoint();
+  if (!point) return null;
+  return el('div', { class: 'return-point' }, [
+    el('p', { class: 'return-point__text' }, [
+      el('span', { class: 'return-point__label', text: COPY['return.label'] + ' ' }),
+      el('span', { text: point.text })
+    ]),
+    el('button', {
+      class: 'btn btn--ghost return-point__clear',
+      type: 'button',
+      text: COPY['return.remove'],
+      data: { action: 'clear-return-point' }
+    })
+  ]);
 }
 
 /* Экран завершения дня. Ни минут, ни блоков, ни сравнения со вчера. */
@@ -9028,6 +9302,14 @@ function renderMoreAppearance() {
     ]),
     el('div', { class: 'more__hint', text: getDetailHint() }),
     el('div', { class: 'more__row more__row--split' }, [
+      el('span', { text: COPY['settings.fade'] }),
+      el('button', { class: 'chip', type: 'button', text: state.data.settings.fade === true ? COPY['settings.on'] : COPY['settings.off'], data: { action: 'toggle-fade' }, attrs: { 'aria-pressed': state.data.settings.fade === true ? 'true' : 'false' } })
+    ]),
+    vibrationAvailable() ? el('div', { class: 'more__row more__row--split' }, [
+      el('span', { text: COPY['settings.vibrate'] }),
+      el('button', { class: 'chip', type: 'button', text: state.data.settings.vibrate === true ? COPY['settings.on'] : COPY['settings.off'], data: { action: 'toggle-vibrate' }, attrs: { 'aria-pressed': state.data.settings.vibrate === true ? 'true' : 'false' } })
+    ]) : null,
+    el('div', { class: 'more__row more__row--split' }, [
       el('span', { text: 'Необязательные вопросы' }),
       el('button', { class: 'chip', type: 'button', text: state.data.settings.askOptional === false ? 'Выключены' : 'Включены', data: { action: 'toggle-optional' } })
     ])
@@ -9733,6 +10015,12 @@ function hiddenQuestionCount() {
   return count;
 }
 
+function toggleSetting(key) {
+  state.data.settings[key] = state.data.settings[key] !== true;
+  saveState({ immediate: true });
+  renderScreen({ moveFocus: false });
+}
+
 /* Одна строка возвращает всё погашенное: счётчики обнуляются. */
 function toggleOptionalQuestions() {
   const settings = state.data.settings;
@@ -9970,6 +10258,10 @@ function handleAction(action, dataset) {
     case 'own-add':          showOwnSourceForm(); return;
     case 'own-delete':       deleteOwnSource(dataset.source); return;
     case 'own-external':     switchOwnToExternal(dataset.source); return;
+    case 'clear-return-point': clearReturnPoint(); renderScreen({ moveFocus: false }); return;
+    case 'save-result':      saveResult(); return;
+    case 'toggle-fade':      toggleSetting('fade'); return;
+    case 'toggle-vibrate':   toggleSetting('vibrate'); return;
     case 'close-tomorrow':   state.data.tomorrow = null; saveState({ immediate: true }); renderScreen({ moveFocus: false }); return;
     case 'resume-session':   resumeStoredSession(); return;
     case 'resume-finish':    finishStoredSession(); return;
@@ -11062,7 +11354,7 @@ function renderUpdateBar() {
   if (!bar) return;
   bar.textContent = '';
   const pending = state.updateWaiting || state.updateReady || state.updateDeferred;
-  const hidden = !pending || (state.updateDeferred ? state.view === 'session' : !!state.session);
+  const hidden = !pending || !!state.result || (state.updateDeferred ? state.view === 'session' : !!state.session);
   if (hidden) {
     bar.classList.add('hidden');
     return;
