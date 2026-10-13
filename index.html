@@ -60,6 +60,7 @@
   --line:          #E3E1DC;
   --line-strong:   #D3D0C9;
   --press:         rgba(0, 0, 0, 0.05);
+  --press-scale:   .97;
   --accent:        #7E6849;
   --accent-ink:    #62513A;
   --accent-wash:   #F1EBE1;
@@ -141,8 +142,8 @@
   --e3:         0 2px 4px rgba(0,0,0,.5), 0 20px 56px rgba(0,0,0,.6);
   --glass:      color-mix(in srgb, #1D1D1F 88%, transparent);
   --glass-edge: rgba(255,255,255,.09);
-  --track:      #212123;
-  --thumb:      #3A3A3D;
+  --track:      #2C2C2F;
+  --thumb:      #48484C;
   --thumb-sh:   0 1px 1px rgba(0,0,0,.5), 0 3px 8px rgba(0,0,0,.45);
   --scrim:      rgba(0,0,0,.55);
   --btn-hi:     inset 0 1px 0 rgba(255,255,255,.28), inset 0 -1px 0 rgba(0,0,0,.18);
@@ -170,7 +171,6 @@ body {
   font-size: 15px;
   line-height: 1.6;
   -webkit-text-size-adjust: 100%;
-  transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease);
 }
 .no-transition, .no-transition * { transition: none !important; }
 
@@ -244,10 +244,10 @@ a { color: var(--accent-ink); }
   border-radius: var(--r-btn);
   color: var(--text-2);
   cursor: pointer;
-  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  transition: transform var(--dur-fast) var(--ease-emph);
 }
 .iconbtn:hover { background: var(--surface-2); color: var(--text); }
-.iconbtn:active { transform: scale(.985); }
+.iconbtn:active { transform: scale(var(--press-scale)); }
 
 /* ============================================================
    БЛОК: НАВИГАЦИЯ
@@ -266,7 +266,6 @@ a { color: var(--accent-ink); }
   font-weight: 500;
   text-align: left;
   cursor: pointer;
-  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 .nav__item:hover { background: var(--surface-2); color: var(--text); }
 .nav__item[aria-current="page"] { background: var(--accent-wash); color: var(--accent-ink); }
@@ -312,7 +311,7 @@ a { color: var(--accent-ink); }
   background: var(--accent-wash);
   z-index: -1;
 }
-.tabbar .nav__item:active { transform: scale(.97); }
+.tabbar .nav__item:active { transform: scale(var(--press-scale)); }
 
 /* Десктопный rail */
 .rail { display: none; }
@@ -455,7 +454,7 @@ a { color: var(--accent-ink); }
   transition: transform var(--dur-fast) var(--ease-emph);
 }
 .task:hover { border-color: var(--line-strong); }
-.task:active { transform: scale(.985); }
+.task:active { transform: scale(var(--press-scale)); }
 .task[aria-pressed="true"] {
   border-color: var(--accent);
   background: var(--accent-wash);
@@ -551,7 +550,7 @@ a { color: var(--accent-ink); }
   transition: transform var(--dur-fast) var(--ease-emph);
 }
 .state:hover { border-color: var(--line-strong); }
-.state:active { transform: scale(.985); }
+.state:active { transform: scale(var(--press-scale)); }
 .state[aria-pressed="true"] {
   border-color: var(--accent);
   background: var(--accent-wash);
@@ -630,7 +629,6 @@ a { color: var(--accent-ink); }
   font: inherit;
   color: inherit;
   text-align: left;
-  transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 .collapsed-entry:hover { background: var(--surface-2); }
 .collapsed-entry:active { background: var(--press); }
@@ -661,7 +659,7 @@ a { color: var(--accent-ink); }
   cursor: pointer;
   transition: transform var(--dur-fast) var(--ease-emph);
 }
-.btn:active { transform: scale(.985); }
+.btn:active { transform: scale(var(--press-scale)); }
 .btn[disabled] { opacity: .5; cursor: default; }
 .btn[disabled]:active { transform: none; }
 
@@ -676,7 +674,7 @@ a { color: var(--accent-ink); }
   box-shadow: var(--btn-hi), 0 1px 1px rgba(0,0,0,.12), 0 4px 10px rgba(0,0,0,.14);
 }
 .btn--primary:hover { background: var(--accent-ink); }
-.btn--primary:active { transform: scale(.97); box-shadow: var(--btn-hi), 0 1px 1px rgba(0,0,0,.12); }
+.btn--primary:active { transform: scale(var(--press-scale)); box-shadow: var(--btn-hi), 0 1px 1px rgba(0,0,0,.12); }
 
 .btn--secondary {
   height: 40px;
@@ -865,7 +863,6 @@ a { color: var(--accent-ink); }
   border-radius: var(--r-btn);
   text-align: left;
   cursor: pointer;
-  transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 .pick__item:hover { background: var(--surface); }
 .pick__item[aria-pressed="true"] { border-color: var(--accent); background: var(--surface); }
@@ -930,8 +927,37 @@ a { color: var(--accent-ink); }
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: var(--sp-3);
+  gap: var(--sp-2) var(--sp-3);
+  max-width: 100%;
 }
+.session__controls .btn--secondary { padding: 0 12px; white-space: nowrap; }
+.session__collapse { position: absolute; top: calc(var(--sp-2) + env(safe-area-inset-top)); right: var(--sp-2); }
+
+/* Круглая кнопка паузы: главное действие экрана, цель 56 px. */
+.btn--round {
+  width: 56px; height: 56px; min-height: 56px;
+  padding: 0;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--hi), var(--e1);
+}
+.btn--round:hover { background: var(--surface-2); }
+
+/* Шкала мастера: 50 делений по кругу. Исполнено красится режимом,
+   текущее деление набирает яркость. Только stroke и opacity, без свечения. */
+.dial { width: 168px; height: 168px; display: block; margin: 0 auto; }
+.dial .tk { stroke: var(--track); stroke-width: 1.4; stroke-linecap: round; }
+.dial .tk.maj { stroke-width: 2; }
+.dial .tk.done { stroke: var(--dial-color, var(--accent)); }
+.dial-wrap { position: relative; width: 168px; height: 168px; }
+.dial-wrap__num {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 40px; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.dial-wrap__unit { font-size: 13px; font-weight: 500; color: var(--text-2); margin-top: var(--sp-1); }
 
 /* Затухание через 20 секунд бездействия. Строка состояния не приглушается. */
 .session__dim { transition: opacity var(--dur-slow) var(--ease); }
@@ -990,7 +1016,23 @@ a { color: var(--accent-ink); }
 /* Регулятор громкости */
 .volume { display: flex; align-items: center; gap: var(--sp-3); }
 .volume__label { font-size: 14px; color: var(--text-2); }
-.volume__input { width: 180px; max-width: 60vw; accent-color: var(--accent); height: 44px; }
+.volume__input {
+  -webkit-appearance: none; appearance: none;
+  width: 180px; max-width: 60vw; height: 44px;
+  background: transparent; cursor: pointer; margin: 0;
+}
+.volume__input::-webkit-slider-runnable-track { height: 6px; border-radius: var(--r-pill); background: var(--track); box-shadow: inset 0 0 0 1px var(--line); }
+.volume__input::-moz-range-track { height: 6px; border-radius: var(--r-pill); background: var(--track); box-shadow: inset 0 0 0 1px var(--line); }
+.volume__input::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 24px; height: 24px; margin-top: -9px;
+  border-radius: 50%; background: var(--thumb); border: 1px solid var(--line-strong); box-shadow: var(--thumb-sh);
+}
+.volume__input::-moz-range-thumb {
+  width: 22px; height: 22px;
+  border-radius: 50%; background: var(--thumb); border: 1px solid var(--line-strong); box-shadow: var(--thumb-sh);
+}
+.volume__input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--r-pill); }
 
 /* Строка «Не нашли своё занятие?» и вводная в «Музыке» */
 .entry__notfound {
@@ -1167,7 +1209,6 @@ body.has-mini .scroll-to-top {
   border: 1px solid var(--line);
   border-radius: var(--r-card);
   cursor: pointer;
-  transition: border-color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease);
 }
 .rating:hover { border-color: var(--line-strong); }
 .rating[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-wash); }
@@ -1364,6 +1405,8 @@ body.has-mini .scroll-to-top {
 }
 .more__row:hover { background: var(--surface-2); }
 .more__row + .more__row::before { content: ''; position: absolute; left: 16px; right: 0; top: 0; height: 1px; background: var(--line); }
+.more__row--split { justify-content: space-between; cursor: default; }
+.more__row--split:hover { background: none; }
 .more__row--danger { color: var(--danger); }
 .more__row--danger:hover { background: var(--surface-2); }
 .more__row--checked { background: var(--accent-wash); }
@@ -1856,7 +1899,7 @@ function safeStep(name, fn) {
 /* ============================================================
    ВЕРСИЯ СБОРКИ
    ============================================================ */
-const APP_VERSION = '1.0.35';
+const APP_VERSION = '1.0.36';
 
 /* ============================================================
    БЛОК: КОНФИГ
@@ -5946,11 +5989,12 @@ function pluralMinutes(n) {
 
 function formatSessionDuration(minutes) {
   if (minutes > 720) return 'длительность неизвестна';
-  if (minutes < 60) return minutes + ' мин';
+  /* Неразрывные пробелы: «1 ч 3 мин» не рвётся на узком экране. */
+  if (minutes < 60) return minutes + ' мин';
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
-  if (mins === 0) return hours + ' ч';
-  return hours + ' ч ' + mins + ' мин';
+  if (mins === 0) return hours + ' ч';
+  return hours + ' ч ' + mins + ' мин';
 }
 
 function formatClockMinutesOnly(ms) {
@@ -6202,6 +6246,9 @@ function renderSession(options) {
   ]);
   root.appendChild(modeLine);
 
+  /* Шкала мастера: только когда у сессии есть плановая длительность. */
+  if (session.plannedMinutes) root.appendChild(buildDial(session));
+
   /* Вторая строка: эквалайзер + состояние звука (НЕ приглушённо) */
   const statusLine = [];
 
@@ -6237,7 +6284,7 @@ function renderSession(options) {
   }
 
   const pauseBtn = el('button', {
-    class: 'btn btn--secondary session__dim',
+    class: 'btn btn--round session__dim',
     type: 'button',
     data: { action: 'session-pause' },
     attrs: { 'aria-label': session.pausedAt ? COPY['session.resume'] : COPY['session.pause'] }
@@ -6269,13 +6316,15 @@ function renderSession(options) {
   });
 
   const collapseBtn = el('button', {
-    class: 'iconbtn session__dim',
+    class: 'iconbtn session__collapse session__dim',
     type: 'button',
     data: { action: 'collapse-session' },
     attrs: { 'aria-label': 'Свернуть' }
-  }, [icon('i-down')]);
+  }, [icon('i-chevron-down')]);
+  root.appendChild(collapseBtn);
 
-  const controls = [collapseBtn, pauseBtn];
+  /* Группа: другой вариант, пауза по центру, завершить. */
+  const controls = [];
   if (ownFailed) {
     controls.push(el('button', {
       class: 'btn btn--secondary session__dim',
@@ -6285,7 +6334,7 @@ function renderSession(options) {
     }));
   }
   if (pageBtn) controls.push(pageBtn);
-  controls.push(nextBtn, finishBtn);
+  controls.push(nextBtn, pauseBtn, finishBtn);
   root.appendChild(el('div', { class: 'session__controls' }, controls));
 
   /* Громкость — только когда играем сами и только на компьютере.
@@ -6360,6 +6409,8 @@ function renderSession(options) {
   /* Полоса рабочего ритма — внизу, поверх неё таймер продолжает идти. */
   root.appendChild(el('div', { class: 'rhythm hidden', attrs: { id: 'rhythmBar' } }));
 
+  dialLastMinute = null;
+  updateDial();
   startTick();
   resetIdle();
   renderRhythmBar();
@@ -6371,12 +6422,83 @@ function renderSession(options) {
   if (opts.focus) modeLine.focus();
 }
 
+/* --- Шкала мастера ------------------------------------------ */
+const DIAL_TICKS = 50;
+
+function buildDial(session) {
+  const NS = 'http://www.w3.org/2000/svg';
+  const wrap = el('div', { class: 'dial-wrap', attrs: { id: 'dial', role: 'img' } });
+  wrap.style.setProperty('--dial-color', 'var(--mode-' + session.modeId + ', var(--accent))');
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 100 100');
+  svg.setAttribute('class', 'dial');
+  svg.setAttribute('aria-hidden', 'true');
+  for (let i = 0; i < DIAL_TICKS; i++) {
+    const major = i % 5 === 0;
+    const angle = (i / DIAL_TICKS) * Math.PI * 2 - Math.PI / 2;
+    const r2 = major ? 43.5 : 45.5;
+    const line = document.createElementNS(NS, 'line');
+    line.setAttribute('x1', (50 + Math.cos(angle) * 49).toFixed(2));
+    line.setAttribute('y1', (50 + Math.sin(angle) * 49).toFixed(2));
+    line.setAttribute('x2', (50 + Math.cos(angle) * r2).toFixed(2));
+    line.setAttribute('y2', (50 + Math.sin(angle) * r2).toFixed(2));
+    line.setAttribute('class', major ? 'tk maj' : 'tk');
+    svg.appendChild(line);
+  }
+  wrap.appendChild(svg);
+  wrap.appendChild(el('div', { class: 'dial-wrap__num' }, [
+    el('span', { attrs: { id: 'dialNum' }, text: '' }),
+    el('span', { class: 'dial-wrap__unit', attrs: { id: 'dialUnit' }, text: '' })
+  ]));
+  return wrap;
+}
+
+/* Обновляется вместе с таймером (не чаще раза в секунду), от меток времени. */
+let dialLastMinute = null;
+function updateDial() {
+  const session = state.session;
+  const wrap = document.getElementById('dial');
+  if (!session || !wrap || !session.plannedMinutes) return;
+  const planned = session.plannedMinutes * 60000;
+  const frac = Math.min(1, sessionElapsedMs() / planned);
+  const position = frac * DIAL_TICKS;
+  const done = Math.floor(position);
+  const part = position - done;
+  const ticks = wrap.querySelectorAll('.tk');
+  for (let i = 0; i < ticks.length; i++) {
+    const tick = ticks[i];
+    tick.classList.toggle('done', i < done || frac >= 1);
+    if (i === done && frac < 1) {
+      tick.classList.add('done');
+      tick.style.opacity = (0.25 + 0.75 * part).toFixed(2);
+    } else if (tick.style.opacity) {
+      tick.style.opacity = '';
+    }
+  }
+  /* Те же целые минуты, что в строке над шкалой (отбрасываем дробную часть). */
+  const leftMin = Math.max(0, Math.floor((planned - sessionElapsedMs()) / 60000));
+  const num = document.getElementById('dialNum');
+  const unit = document.getElementById('dialUnit');
+  const numText = leftMin === 0 ? '<1' : String(leftMin);
+  if (num && num.textContent !== numText) {
+    num.textContent = numText;
+    if (unit) unit.textContent = leftMin === 0 ? 'минуты' : pluralMinutes(leftMin);
+  }
+  /* Подпись для экранного диктора меняем раз в минуту, без aria-live. */
+  if (dialLastMinute !== leftMin) {
+    dialLastMinute = leftMin;
+    wrap.setAttribute('aria-label', formatSessionTimeRemaining(sessionDisplayMs(), session));
+  }
+}
+
 function updateTimerDisplay() {
   const session = state.session;
   if (!session) return;
 
   const node = document.getElementById('sessionTimer');
   if (node) node.textContent = formatSessionTimeRemaining(sessionDisplayMs(), session);
+
+  updateDial();
 
   const mini = document.getElementById('miniTime');
   /* На полосе те же минуты, что и на большом экране: посекундный тик
@@ -8834,7 +8956,7 @@ function renderMoreAppearance() {
       detailButton('full', 'Подробно')
     ]),
     el('div', { class: 'more__hint', text: getDetailHint() }),
-    el('div', { class: 'more__row' }, [
+    el('div', { class: 'more__row more__row--split' }, [
       el('span', { text: 'Необязательные вопросы' }),
       el('button', { class: 'chip', type: 'button', text: state.data.settings.askOptional === false ? 'Выключены' : 'Включены', data: { action: 'toggle-optional' } })
     ])
