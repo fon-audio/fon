@@ -238,6 +238,7 @@ a { color: var(--accent-ink); }
 /* Кнопка-иконка в шапке */
 .iconbtn {
   display: inline-flex; align-items: center; justify-content: center;
+  flex: none;
   width: 44px; height: 44px;
   background: transparent;
   border: 1px solid transparent;
@@ -1445,6 +1446,7 @@ body.has-mini .scroll-to-top {
 .more__row + .more__row::before { content: ''; position: absolute; left: 16px; right: 0; top: 0; height: 1px; background: var(--line); }
 .more__row--split { justify-content: space-between; cursor: default; padding-left: 0; padding-right: 0; }
 .more__row--split:hover { background: none; }
+.more__row--split + .more__row--split::before { left: 0; }
 .more__row--danger { color: var(--danger); }
 .more__row--danger:hover { background: var(--surface-2); }
 .more__row--checked { background: var(--accent-wash); }
@@ -1937,7 +1939,7 @@ function safeStep(name, fn) {
 /* ============================================================
    ВЕРСИЯ СБОРКИ
    ============================================================ */
-const APP_VERSION = '1.0.38';
+const APP_VERSION = '1.0.39';
 
 /* ============================================================
    БЛОК: КОНФИГ
