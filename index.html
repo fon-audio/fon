@@ -61,6 +61,7 @@
   --line-strong:   #D3D0C9;
   --press:         rgba(0, 0, 0, 0.05);
   --press-scale:   .97;
+  --nav-active:    #F1EBE1;
   --accent:        #7E6849;
   --accent-ink:    #62513A;
   --accent-wash:   #F1EBE1;
@@ -144,6 +145,7 @@
   --glass-edge: rgba(255,255,255,.09);
   --track:      #2C2C2F;
   --thumb:      #48484C;
+  --nav-active: #3A332A;
   --thumb-sh:   0 1px 1px rgba(0,0,0,.5), 0 3px 8px rgba(0,0,0,.45);
   --scrim:      rgba(0,0,0,.55);
   --btn-hi:     inset 0 1px 0 rgba(255,255,255,.28), inset 0 -1px 0 rgba(0,0,0,.18);
@@ -309,7 +311,7 @@ a { color: var(--accent-ink); }
   height: 32px;
   margin-left: -28px;
   border-radius: var(--r-pill);
-  background: var(--accent-wash);
+  background: var(--nav-active);
   z-index: -1;
 }
 .tabbar .nav__item:active { transform: scale(var(--press-scale)); }
@@ -782,6 +784,8 @@ a { color: var(--accent-ink); }
    БЛОК: КАРТОЧКА РЕКОМЕНДАЦИИ
    ============================================================ */
 .rec-host { margin-top: var(--sp-5); }
+/* Под показанной карточкой «Последнее» отстоит как секция от секции (32 px). */
+.rec-host:not(:empty) + .entry { margin-top: var(--sp-6); }
 
 .rec {
   padding: var(--sp-5);
@@ -1251,7 +1255,8 @@ body.has-mini .scroll-to-top {
 }
 .rating:hover { border-color: var(--line-strong); }
 .rating[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-wash); }
-.rating__face { font-size: 22px; line-height: 1.2; }
+.rating__face { display: flex; color: var(--text-2); }
+.rating[aria-pressed="true"] .rating__face { color: var(--accent-ink); }
 .rating__label { font-size: 14px; font-weight: 500; }
 .result__errors { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--sp-2); }
 .result__errors-label { font-size: 14px; color: var(--text-2); }
@@ -1444,6 +1449,9 @@ body.has-mini .scroll-to-top {
 }
 .more__row:hover { background: var(--surface-2); }
 .more__row + .more__row::before { content: ''; position: absolute; left: 16px; right: 0; top: 0; height: 1px; background: var(--line); }
+.diag { display: flex; flex-direction: column; gap: var(--sp-2); margin-bottom: var(--sp-4); }
+.diag__row { font-size: 13px; line-height: 1.5; color: var(--text-2); padding: var(--sp-2) var(--sp-3); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-inner); overflow-wrap: anywhere; }
+.diag__actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-bottom: var(--sp-3); }
 .more__row--split { justify-content: space-between; cursor: default; padding-left: 0; padding-right: 0; }
 .more__row--split:hover { background: none; }
 .more__row--split + .more__row--split::before { left: 0; }
@@ -1526,8 +1534,9 @@ body.has-mini .scroll-to-top {
 .palette .pick { max-height: 40vh; overflow-y: auto; }
 
 /* ---- Калибровка ---- */
-.cal__dots { display: flex; gap: var(--sp-2); margin-bottom: var(--sp-2); font-size: 18px; color: var(--text-3); }
-.cal__dot--on { color: var(--accent); }
+.cal__dots { display: flex; gap: var(--sp-2); margin-bottom: var(--sp-2); }
+.cal__dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--text-3); box-sizing: border-box; }
+.cal__dot--on { background: var(--accent); border-color: var(--accent); }
 .cal__day {
   margin-top: var(--sp-4);
   padding: var(--sp-4);
@@ -1712,6 +1721,10 @@ body.has-mini .scroll-to-top {
     <g id="i-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></g>
     <g id="i-upload"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></g>
     <g id="i-plus"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></g>
+    <g id="i-thumb-up"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></g>
+    <g id="i-thumb-down"><path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/></g>
+    <g id="i-thumb-up-plus"><path d="M7 12v10"/><path d="M13 9.4 12.2 12h5.1a2 2 0 0 1 1.92 2.56l-1.9 6.4A2 2 0 0 1 15.4 22H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h2.2a2 2 0 0 0 1.8-1.1L10.4 7a2.6 2.6 0 0 1 2.6 2.4Z"/><path d="M19 2v6M16 5h6"/></g>
+    <g id="i-chevron-left"><polyline points="15 18 9 12 15 6"/></g>
     <g id="i-trash"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></g>
   </defs>
 </svg>
@@ -1939,7 +1952,7 @@ function safeStep(name, fn) {
 /* ============================================================
    ВЕРСИЯ СБОРКИ
    ============================================================ */
-const APP_VERSION = '1.0.39';
+const APP_VERSION = '1.0.40';
 
 /* ============================================================
    БЛОК: КОНФИГ
@@ -1961,10 +1974,15 @@ const CONFIG = {
   channelName: 'fon-tabs',   /* канал, через который вкладки договариваются */
   pingKey: 'mfp.ping',       /* откат на событие storage */
   stallNoticeMs: 20000,      /* было 10000 — на мобильной связи буферизация долгая */
-  connectTimeoutMs: 5000,    /* таймут на подключение к потоку, прежде чем пробовать следующий адрес */
+  connectTimeoutMs: 8000,    /* таймут на подключение к потоку, прежде чем пробовать следующий адрес (было 5000: на мобильной сети с перенаправлением не хватало) */
   deadAirSec: 25,            /* сколько секунд звук может не двигаться, прежде чем считать поток мёртвым */
   maxSwitches: 2,            /* не больше двух переходов подряд, дальше перебирать бессмысленно */
   resetAfterSec: 60,         /* минута нормальной игры обнуляет счётчик переходов */
+  softAfterSec: 20,          /* играл не меньше стольких секунд подряд: обрыв сначала лечим переподключением */
+  softRetryMs: 1500,         /* мягкая попытка 1: тот же адрес через 1,5 с после обрыва */
+  softFallbackMs: 4000,      /* мягкая попытка 2: запасной адрес ещё через 4 с */
+  mediaNextGuardMs: 2000,    /* повтор «Следующий» с экрана блокировки раньше 2 с после смены игнорируем */
+  switchLogMax: 50,          /* сколько записей держит журнал переключений */
   historyWindow: 20,         /* сколько последних сессий смотрит движок */
   recentLimit: 10            /* сколько сессий показываем в «Последнем» */
 };
@@ -3527,7 +3545,7 @@ const HOW_PICKS = {
      'а «Тишина» уходит.'],
 
     ['Дальше ваша история',
-     'Источник, которому вы трижды поставили 👎 в этом режиме, перестаёт быть первым выбором. ' +
+     'Источник, которому вы трижды выбрали «Мешало» в этом режиме, перестаёт быть первым выбором. ' +
      'Тот, что нравится, поднимается.'],
 
     ['И наконец телефон',
@@ -3940,7 +3958,7 @@ const COPY = {
   'cal.back': 'Назад',
   'stats.title': 'Что видно по твоим сессиям',
   'stats.best': 'Лучше всего для',
-  'stats.thumbs': '👍',
+  'stats.thumbs': 'хорошо',
   'stats.of': 'из',
   'stats.hurt': 'Что чаще мешало —',
   'stats.hurtVocals': 'музыка с вокалом',
@@ -4080,6 +4098,14 @@ const COPY = {
   'session.status.external': 'Играет на странице сервиса',
   'session.status.connecting': 'Подключаюсь…',
   'session.status.switching': 'Не отвечает, беру следующую',
+  'session.status.reconnecting': 'Связь прервалась. Подключаюсь снова…',
+  'diag.title': 'Диагностика',
+  'diag.empty': 'Переключений пока не было.',
+  'diag.copy': 'Скопировать',
+  'diag.clear': 'Очистить',
+  'diag.copied': 'Скопировано',
+  'diag.copyFailed': 'Не удалось скопировать: выделите текст вручную',
+  'settings.mediaNext': 'Кнопка «Следующий» на экране блокировки и наушниках',
   'session.status.offline': 'Нет связи. Жду',
   'session.status.giveUp': 'Не получается подключиться. Нажмите «Другой вариант»',
   'session.status.playing': 'Играет',
@@ -4158,6 +4184,69 @@ const storage = {
   }
 };
 
+/* --- Журнал переключений -----------------------------------------
+   Причина каждой смены станции или адреса остаётся на телефоне, а не только
+   в консоли браузера. Последние 50 записей в localStorage, всё в try/catch,
+   никуда не отправляется. Смотреть: «Ещё → Диагностика». */
+const SWITCH_LOG_KEY = 'fon.switchLog';
+
+function readSwitchLog() {
+  try {
+    const raw = storage.read(SWITCH_LOG_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list : [];
+  } catch (e) { return []; }
+}
+
+function clearSwitchLog() {
+  try { storage.remove(SWITCH_LOG_KEY); } catch (e) { /* не критично */ }
+}
+
+/* info: { kind: auto|manual|media-next|address|retry, reason, from, to, ignored } */
+function logSwitch(info) {
+  try {
+    const audio = player.audio;
+    const conn = (typeof navigator !== 'undefined' && navigator.connection && navigator.connection.effectiveType) || '';
+    const entry = {
+      t: new Date().toISOString(),
+      kind: info.kind,
+      reason: info.reason,
+      from: info.from || '',
+      to: info.to || '',
+      sec: player.playedSeconds(),
+      online: typeof navigator !== 'undefined' ? navigator.onLine : null,
+      vis: typeof document !== 'undefined' ? document.visibilityState : '',
+      net: conn,
+      rs: audio ? audio.readyState : null,
+      ns: audio ? audio.networkState : null,
+      err: audio && audio.error ? audio.error.code : null
+    };
+    const list = readSwitchLog();
+    list.push(entry);
+    while (list.length > CONFIG.switchLogMax) list.shift();
+    storage.write(SWITCH_LOG_KEY, JSON.stringify(list));
+    if (!info.ignored) player._lastSwitchAt = Date.now();
+  } catch (e) { /* журнал не должен ломать звук */ }
+}
+
+function formatSwitchLogLine(entry) {
+  const time = new Date(entry.t);
+  const pad = function (n) { return String(n).padStart(2, '0'); };
+  const clock = pad(time.getDate()) + '.' + pad(time.getMonth() + 1) + ' ' + pad(time.getHours()) + ':' + pad(time.getMinutes()) + ':' + pad(time.getSeconds());
+  const parts = [
+    clock, entry.kind, entry.reason,
+    (entry.from || '—') + ' → ' + (entry.to || '—'),
+    'играл ' + (entry.sec || 0) + ' с',
+    'online=' + (entry.online === null ? '?' : (entry.online ? 'да' : 'нет')),
+    entry.vis || '?',
+    entry.net || 'тип связи неизвестен',
+    'readyState=' + (entry.rs === null ? '—' : entry.rs),
+    'networkState=' + (entry.ns === null ? '—' : entry.ns),
+    'error=' + (entry.err === null ? '—' : entry.err)
+  ];
+  return parts.join(' · ');
+}
+
 /* Пустая схема данных. Всё, что переживает перезагрузку, живёт здесь. */
 function defaultData() {
   return {
@@ -4182,7 +4271,9 @@ function defaultData() {
       askOptional: true,
       /* «Плавное начало и конец» и «Вибрация в конце сессии»: выключены. */
       fade: false,
-      vibrate: false
+      vibrate: false,
+      /* Кнопка «Следующий» на экране блокировки и наушниках. */
+      mediaNext: true
     },
     durations: {},
     presets: [],
@@ -4289,6 +4380,7 @@ function normalizeData(raw) {
     if (raw.settings.askOptional === false) result.settings.askOptional = false;
     if (raw.settings.fade === true) result.settings.fade = true;
     if (raw.settings.vibrate === true) result.settings.vibrate = true;
+    if (raw.settings.mediaNext === false) result.settings.mediaNext = false;
     if (raw.settings.rhythm && typeof raw.settings.rhythm === 'object') {
       const base = defaultRhythm();
       const incoming = raw.settings.rhythm;
@@ -4548,6 +4640,11 @@ const player = {
 
   onAudioPlaying: function(e) {
     if (player.audio && player.audio === e.target) {
+      if (!player._playedSince) player._playedSince = Date.now();
+      player._lastProgressAt = Date.now();
+      player._lastPlayedSec = 0;
+      /* Мягкое переподключение удалось: станция та же, счётчик переходов не трогаем. */
+      if (player._soft) { player.clearSoft(); player._deadHandled = false; }
       if (player._fadeInPending) {
         player._fadeInPending = false;
         player.softFade(state.data.settings.volume, 1500);
@@ -4641,6 +4738,7 @@ const player = {
         }
       } else {
         this._sameTimeSec = 0;
+        this._lastProgressAt = Date.now();
       }
       this._lastTime = now;
     }, 1000);
@@ -4674,6 +4772,10 @@ const player = {
      сообщаем наверх, чтобы перейти к следующему источнику в цепочке. */
   tryNextUrl(reason) {
     if (this.urlIndex >= this.urls.length) return;
+    if (this.urlIndex + 1 < this.urls.length) {
+      const name = (this.source && this.source.title) || '';
+      logSwitch({ kind: 'address', reason: reason || 'error', from: name + ' #' + (this.urlIndex + 1), to: name + ' #' + (this.urlIndex + 2) });
+    }
     this.urlIndex++;
     if (this.urlIndex >= this.urls.length) {
       this.clearStallTimer();
@@ -4731,6 +4833,8 @@ const player = {
   },
 
   pause() {
+    this.clearSoft();
+    this._playedSince = null;
     clearTimeout(this._pendingTimer);
     this._pendingTimer = null;
     if (this.audio && !this.audio.paused) this.audio.pause();
@@ -4760,6 +4864,9 @@ const player = {
 
   stop() {
     this._attemptToken++;
+    this.clearSoft();
+    this._playedSince = null;
+    this._lastPlayedSec = 0;
     this.cancelSoftFade();
     this._fadeInPending = false;
     this._pausing = false;
@@ -4794,6 +4901,68 @@ const player = {
   softFadeTimer: null,
   _fadeInPending: false,
   _pausing: false,
+
+  /* Сколько секунд поток играет подряд (с последнего 'playing'). */
+  _playedSince: null,
+  _lastPlayedSec: 0,
+  _lastProgressAt: 0,
+  _lastSwitchAt: 0,
+  _soft: null,
+
+  playedSeconds() {
+    if (this._playedSince) return Math.round((Date.now() - this._playedSince) / 1000);
+    return this._lastPlayedSec || 0;
+  },
+
+  /* Обрыв после долгой игры: сначала та же станция, а не следующая. */
+  shouldSoftReconnect(playedMs) {
+    const session = state.session;
+    if (!session || session.pausedAt || !this.source) return false;
+    if (this.source.play.kind !== 'stream') return false;
+    if (navigator.onLine === false) return false;
+    return playedMs >= CONFIG.softAfterSec * 1000;
+  },
+
+  clearSoft() {
+    if (this._soft) { this._soft.timers.forEach(clearTimeout); this._soft = null; }
+  },
+
+  /* Попытка 1: тот же адрес через 1,5 с. Попытка 2: запасной адрес ещё через 4 с.
+     Хоть одна дала 'playing': станция та же, счётчик переходов не трогаем.
+     Обе не удались: прежняя логика autoAdvance. */
+  startSoftReconnect(reason) {
+    this.clearProgressWatch();
+    this.clearStallTimer();
+    this.clearConnectTimer();
+    const soft = { reason: reason, step: 0, timers: [] };
+    this._soft = soft;
+    if (state.session) { state.session.isPlaying = false; updateSessionStatus(); }
+    setSessionNotice(COPY['session.status.reconnecting']);
+    const title = (this.source && this.source.title) || '';
+
+    const attempt = (useFallback) => {
+      if (this._soft !== soft || !state.session || !this.source) return;
+      soft.step++;
+      const fallback = useFallback && this.urls.length > 1;
+      if (fallback) this.urlIndex = 1;
+      logSwitch({ kind: fallback ? 'address' : 'retry', reason: reason, from: title + ' #' + (fallback ? 1 : this.urlIndex + 1), to: title + ' #' + (this.urlIndex + 1) });
+      const audio = this.ensureAudio();
+      audio.src = this.urls[this.urlIndex];
+      audio.load();
+      const promise = audio.play();
+      if (promise && promise.catch) promise.catch(function () { /* исход решат события и последний таймер */ });
+    };
+    soft.timers.push(setTimeout(() => attempt(false), CONFIG.softRetryMs));
+    soft.timers.push(setTimeout(() => attempt(true), CONFIG.softRetryMs + CONFIG.softFallbackMs));
+    soft.timers.push(setTimeout(() => this.giveUpSoft(soft), CONFIG.softRetryMs + CONFIG.softFallbackMs + CONFIG.connectTimeoutMs));
+  },
+
+  giveUpSoft(soft) {
+    if (this._soft !== soft) return;
+    this.clearSoft();
+    this._deadHandled = true;
+    autoAdvance(soft.reason);
+  },
 
   cancelSoftFade() {
     if (this.softFadeTimer) { clearInterval(this.softFadeTimer); this.softFadeTimer = null; }
@@ -4837,7 +5006,18 @@ const player = {
   },
 
   handleDeadStream(reason) {
+    if (this._soft) {
+      /* Событие от самой мягкой попытки. После второй попытки ждать нечего. */
+      if (this._soft.step >= 2) this.giveUpSoft(this._soft);
+      return;
+    }
     if (this._deadHandled) return;
+    /* Сколько поток реально играл подряд: при «мёртвом звуке» считаем до последнего движения. */
+    const end = reason === 'dead-air' && this._lastProgressAt ? this._lastProgressAt : Date.now();
+    const playedMs = this._playedSince ? Math.max(0, end - this._playedSince) : 0;
+    this._lastPlayedSec = Math.round(playedMs / 1000);
+    this._playedSince = null;
+    if (this.shouldSoftReconnect(playedMs)) { this.startSoftReconnect(reason); return; }
     this._deadHandled = true;
     this.clearProgressWatch();
     this.clearStallTimer();
@@ -5225,7 +5405,22 @@ function bindMediaSession() {
   };
   set('play', function () { player.resume(); });
   set('pause', function () { player.pause(); });
-  set('nexttrack', function () { if (state.session) { player._switches = 0; nextSource(); } });
+  /* «Следующий» на экране блокировки и наушниках: повтор в течение 2 с после смены
+     игнорируем (двойное касание наушника), выключатель в «Ещё → Интерфейс». */
+  if (state.data.settings.mediaNext === false) {
+    set('nexttrack', null);
+  } else {
+    set('nexttrack', function () {
+      if (!state.session) return;
+      const current = SOURCE_BY_ID[state.session.sourceId];
+      if (Date.now() - (player._lastSwitchAt || 0) < CONFIG.mediaNextGuardMs) {
+        logSwitch({ kind: 'media-next', reason: 'media-next', from: current ? current.title : '', to: '(повтор, игнор)', ignored: true });
+        return;
+      }
+      player._switches = 0;
+      nextSource({ kind: 'media-next', reason: 'media-next' });
+    });
+  }
 }
 
 /* ============================================================
@@ -6772,12 +6967,16 @@ function togglePause() {
 
 /* «Другой вариант» — следующий источник цепочки, по кругу.
    Таймер не сбрасывается. */
-function nextSource() {
+function nextSource(context) {
   const session = state.session;
   if (!session) return;
+  const ctx = context || { kind: 'manual', reason: 'user' };
   const chain = chainFor(session.modeId);
   const index = chain.indexOf(session.sourceId);
   const nextId = chain[(index + 1) % chain.length];
+  const fromSource = SOURCE_BY_ID[session.sourceId];
+  const toSource = SOURCE_BY_ID[nextId];
+  logSwitch({ kind: ctx.kind, reason: ctx.reason, from: fromSource ? fromSource.title : session.sourceId, to: toSource ? toSource.title : nextId });
   session.sourceId = nextId;
   session.switched = true;
   session.fallbackExternal = false;
@@ -6805,6 +7004,7 @@ function setSessionNotice(text) {
    обрыв при старте. Ручной выбор и 60 секунд игры счётчик не трогают. */
 function autoAdvance(reason) {
   console.info('[autoAdvance] reason=' + reason);
+  player._advanceReason = reason;
   const result = advanceOnce();
   console.info('[autoAdvance] result=' + result + ' switches=' + player._switches + ' pending=' + !!player._pendingTimer);
   return result;
@@ -6841,14 +7041,16 @@ function advanceOnce() {
     player.clearStallTimer();
     session.fallbackExternal = true;
     const failed = SOURCE_BY_ID[session.sourceId];
+    logSwitch({ kind: 'auto', reason: 'limit', from: failed ? failed.title : session.sourceId, to: '—' });
     setSessionNotice(failed && failed.status === 'own' ? COPY['own.notPlayable'] : COPY['session.status.giveUp']);
     return 'limit';
   }
 
   setSessionNotice(COPY['session.status.switching']);
+  const advanceReason = player._advanceReason || 'error';
   player._pendingTimer = setTimeout(function () {
     player._pendingTimer = null;
-    nextSource();
+    nextSource({ kind: 'auto', reason: advanceReason });
   }, 700);
   return 'advanced';
 }
@@ -6866,6 +7068,7 @@ function showCorrection() {
     const targetMode = MODE_BY_ID[targetModeId];
     text = currentMode.title + ' → ' + targetMode.title;
     apply = function () {
+      logSwitch({ kind: 'manual', reason: 'user', from: (SOURCE_BY_ID[session.sourceId] || {}).title || '', to: (SOURCE_BY_ID[CHAINS[targetModeId][0]] || {}).title || '' });
       session.modeId = targetModeId;
       session.sourceId = CHAINS[targetModeId][0];
       session.switched = true;
@@ -6885,6 +7088,7 @@ function showCorrection() {
     }
     text = currentMode.title + ' → ' + SOURCE_BY_ID[calmest].title;
     apply = function () {
+      logSwitch({ kind: 'manual', reason: 'user', from: (SOURCE_BY_ID[session.sourceId] || {}).title || '', to: (SOURCE_BY_ID[calmest] || {}).title || '' });
       session.sourceId = calmest;
       session.switched = true;
       startPlayback(SOURCE_BY_ID[calmest]);
@@ -7200,9 +7404,9 @@ function renderResumeCard() {
    Никаких поздравлений, процентов и графиков.
    ============================================================ */
 const RATINGS = [
-  { value: -1, face: '👎', label: 'result.bad' },
-  { value: 1,  face: '👍', label: 'result.good' },
-  { value: 2,  face: '👍', label: 'result.great' }
+  { value: -1, icon: 'i-thumb-down',    label: 'result.bad' },
+  { value: 1,  icon: 'i-thumb-up',      label: 'result.good' },
+  { value: 2,  icon: 'i-thumb-up-plus', label: 'result.great' }
 ];
 
 function findSession(id) {
@@ -7267,7 +7471,7 @@ function renderResult(options) {
       data: { action: 'rate', value: String(item.value) },
       attrs: { 'aria-pressed': record.rating === item.value ? 'true' : 'false' }
     }, [
-      el('span', { class: 'rating__face', text: item.face, attrs: { 'aria-hidden': 'true' } }),
+      el('span', { class: 'rating__face', attrs: { 'aria-hidden': 'true' } }, [icon(item.icon, 24)]),
       el('span', { class: 'rating__label', text: COPY[item.label] })
     ]));
   }
@@ -8914,9 +9118,11 @@ function formatSessionDate(iso) {
   return dd + '.' + mm;
 }
 
+/* Оценка в строке истории: словом, без эмодзи. */
 function ratingFace(rating) {
-  if (rating === -1) return '👎';
-  if (rating === 1 || rating === 2) return '👍';
+  if (rating === -1) return COPY['result.bad'];
+  if (rating === 1) return COPY['result.good'];
+  if (rating === 2) return COPY['result.great'];
   return '';
 }
 
@@ -9138,7 +9344,8 @@ const MORE_ITEMS = [
     { id: 'appearance',  title: 'Интерфейс' },
     { id: 'rhythm',      title: 'Рабочий ритм' },
     { id: 'sound',       title: 'Звук' },
-    { id: 'data',        title: 'Данные' }
+    { id: 'data',        title: 'Данные' },
+    { id: 'diag',        title: 'Диагностика' }
   ]},
   { group: 'Методика', items: [
     { id: 'calibration', title: 'Настроить под себя за 7 дней' },
@@ -9177,6 +9384,7 @@ function renderMoreScreen(id) {
     case 'rhythm':      return renderMoreRhythm();
     case 'sound':       return renderMoreSound();
     case 'data':        return renderMoreData();
+    case 'diag':        return renderMoreDiagnostics();
     case 'calibration': {
       const section = screenShell(COPY['nav.more']);
       section.appendChild(el('button', {
@@ -9224,9 +9432,8 @@ function moreScreen(title, content) {
   section.appendChild(el('button', {
     class: 'btn btn--ghost more__back',
     type: 'button',
-    text: '← ' + COPY['common.back'],
     data: { action: 'go-more' }
-  }));
+  }, [icon('i-chevron-left'), el('span', { text: COPY['common.back'] })]));
   section.appendChild(el('h1', { class: 'more__title-screen', text: title }));
   section.appendChild(content);
   return section;
@@ -9256,6 +9463,7 @@ function moreValue(id) {
     case 'appearance': return state.data.settings.theme === 'light' ? 'Светлая' : state.data.settings.theme === 'dark' ? 'Тёмная' : 'Системная';
     case 'rhythm':     return (state.data.settings.rhythm || {}).on ? 'Включён' : 'Выключен';
     case 'sound':      return 'Громкость ' + Math.round((state.data.settings.volume || 0.5) * 100) + '%';
+    case 'diag':       { const count = readSwitchLog().length; return count ? String(count) : ''; }
     default:           return '';
   }
 }
@@ -9279,7 +9487,7 @@ function buildProfilesList() {
       data: { action: 'toggle-profile', value: profile.id },
       attrs: { 'aria-pressed': on ? 'true' : 'false' }
     }, [
-      el('span', { class: 'more__checkbox', text: on ? '✓' : '' }),
+      el('span', { class: 'more__checkbox', attrs: { 'aria-hidden': 'true' } }, on ? [icon('i-check')] : []),
       el('span', { class: 'more__title', text: profile.title }),
       el('span', { class: 'more__count', text: profile.tasks.length + ' ' + pluralRu(profile.tasks.length, ['занятие', 'занятия', 'занятий']) })
     ]);
@@ -9306,6 +9514,10 @@ function renderMoreAppearance() {
     el('div', { class: 'more__row more__row--split' }, [
       el('span', { text: COPY['settings.fade'] }),
       el('button', { class: 'chip', type: 'button', text: state.data.settings.fade === true ? COPY['settings.on'] : COPY['settings.off'], data: { action: 'toggle-fade' }, attrs: { 'aria-pressed': state.data.settings.fade === true ? 'true' : 'false' } })
+    ]),
+    el('div', { class: 'more__row more__row--split' }, [
+      el('span', { text: COPY['settings.mediaNext'] }),
+      el('button', { class: 'chip', type: 'button', text: state.data.settings.mediaNext === false ? COPY['settings.off'] : COPY['settings.on'], data: { action: 'toggle-media-next' }, attrs: { 'aria-pressed': state.data.settings.mediaNext === false ? 'false' : 'true' } })
     ]),
     vibrationAvailable() ? el('div', { class: 'more__row more__row--split' }, [
       el('span', { text: COPY['settings.vibrate'] }),
@@ -9391,6 +9603,64 @@ function renderMoreSound() {
     ])
   ]);
   return moreScreen(MORE_ITEMS[0].items[3].title, content);
+}
+
+/* Журнал переключений: строка на запись, копирование и очистка. Ничего не отправляется. */
+function diagnosticsText() {
+  const list = readSwitchLog();
+  return ['Фон v' + APP_VERSION + ' · записей: ' + list.length].concat(list.map(function (entry) {
+    return entry.t + ' · ' + formatSwitchLogLine(entry);
+  })).join('\n');
+}
+
+function renderMoreDiagnostics() {
+  const list = readSwitchLog();
+  const children = [];
+  if (!list.length) {
+    children.push(el('p', { class: 'small muted', text: COPY['diag.empty'] }));
+  } else {
+    const rows = el('ol', { class: 'diag' });
+    list.slice().reverse().forEach(function (entry) {
+      rows.appendChild(el('li', { class: 'diag__row', text: formatSwitchLogLine(entry) }));
+    });
+    children.push(rows);
+  }
+  children.push(el('div', { class: 'diag__actions' }, [
+    el('button', { class: 'btn btn--secondary', type: 'button', text: COPY['diag.copy'], data: { action: 'diag-copy' } }),
+    el('button', { class: 'btn btn--secondary', type: 'button', text: COPY['diag.clear'], data: { action: 'diag-clear' } })
+  ]));
+  children.push(el('p', { class: 'small muted', attrs: { id: 'diagStatus', 'aria-live': 'polite' } }));
+  return moreScreen(MORE_ITEMS[0].items[5].title, el('div', {}, children));
+}
+
+function diagnosticsSetStatus(text) {
+  const node = document.getElementById('diagStatus');
+  if (node) node.textContent = text;
+}
+
+function copyDiagnostics() {
+  const text = diagnosticsText();
+  const fallback = function () {
+    try {
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.setAttribute('readonly', '');
+      area.style.position = 'fixed';
+      area.style.opacity = '0';
+      document.body.appendChild(area);
+      area.select();
+      const ok = document.execCommand && document.execCommand('copy');
+      area.remove();
+      diagnosticsSetStatus(ok ? COPY['diag.copied'] : COPY['diag.copyFailed']);
+    } catch (e) { diagnosticsSetStatus(COPY['diag.copyFailed']); }
+  };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { diagnosticsSetStatus(COPY['diag.copied']); }, fallback);
+      return;
+    }
+  } catch (e) { /* упадём на запасной путь */ }
+  fallback();
 }
 
 function renderMoreData() {
@@ -9885,7 +10155,7 @@ function renderCalibration() {
   const dots = el('div', { class: 'cal__dots', attrs: { 'aria-hidden': 'true' } });
   const passed = (data.days || []).length;
   for (let i = 0; i < CALIBRATION_DAYS.length; i++) {
-    dots.appendChild(el('span', { class: 'cal__dot' + (i < passed ? ' cal__dot--on' : ''), text: i < passed ? '●' : '○' }));
+    dots.appendChild(el('span', { class: 'cal__dot' + (i < passed ? ' cal__dot--on' : '') }));
   }
   box.appendChild(dots);
   box.appendChild(el('p', { class: 'small', text: COPY['cal.progress'] + ' ' + passed + ' / ' + CALIBRATION_DAYS.length }));
@@ -10015,6 +10285,14 @@ function hiddenQuestionCount() {
     if (counters[key] >= DISMISS_LIMIT) count++;
   }
   return count;
+}
+
+/* Выключатель по умолчанию включён, поэтому хранится как «false» только в выключенном виде. */
+function toggleMediaNext() {
+  state.data.settings.mediaNext = state.data.settings.mediaNext === false;
+  saveState({ immediate: true });
+  bindMediaSession();
+  renderScreen({ moveFocus: false });
 }
 
 function toggleSetting(key) {
@@ -10162,9 +10440,8 @@ function renderStartupNotice() {
   const toggle = el('button', {
     type: 'button',
     class: 'startup-notice-toggle',
-    text: '↓',
     attrs: { 'aria-label': 'Показать ошибки', 'aria-expanded': 'false' }
-  });
+  }, [icon('i-chevron-down')]);
   const notice = el('div', { class: 'startup-notice', attrs: { role: 'status' } }, [
     el('span', { text: 'Часть возможностей недоступна в этом браузере' }),
     toggle
@@ -10225,7 +10502,7 @@ function handleAction(action, dataset) {
   switch (action) {
     case 'start':            startSession(); return;
     case 'session-pause':    togglePause(); return;
-    case 'session-next':     player._switches = 0; nextSource(); return;
+    case 'session-next':     player._switches = 0; nextSource({ kind: 'manual', reason: 'user' }); return;
     case 'session-finish':   finishSession({}); return;
     case 'collapse-session': history.back(); return;
     case 'session-mistakes': showCorrection(); return;
@@ -10260,6 +10537,9 @@ function handleAction(action, dataset) {
     case 'own-add':          showOwnSourceForm(); return;
     case 'own-delete':       deleteOwnSource(dataset.source); return;
     case 'own-external':     switchOwnToExternal(dataset.source); return;
+    case 'diag-copy':        copyDiagnostics(); return;
+    case 'diag-clear':       clearSwitchLog(); renderScreen({ moveFocus: false }); return;
+    case 'toggle-media-next': toggleMediaNext(); return;
     case 'clear-return-point': clearReturnPoint(); renderScreen({ moveFocus: false }); return;
     case 'save-result':      saveResult(); return;
     case 'toggle-fade':      toggleSetting('fade'); return;
